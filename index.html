@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071226">
+  <title>El Rosco Eléctrico | Pasapalabra</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --navy: #071226;
+      --panel: rgba(15, 31, 57, .78);
+      --line: rgba(155, 184, 225, .16);
+      --muted: #9aacc8;
+      --cyan: #45d7f5;
+      --amber: #ffcb55;
+      --green: #39d99a;
+      --red: #fb7185;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: #f4f7ff;
+      font-family: "Inter", sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 9%, rgba(35, 91, 178, .29), transparent 35%),
+        radial-gradient(ellipse at 92% 20%, rgba(19, 122, 159, .18), transparent 34%),
+        radial-gradient(ellipse at 51% 100%, rgba(24, 54, 113, .32), transparent 42%),
+        var(--navy);
+    }
+    button, input, textarea, select { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .display-font { font-family: "Montserrat", sans-serif; }
+    .glass {
+      background: linear-gradient(145deg, rgba(20, 40, 71, .86), rgba(11, 25, 47, .83));
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255,255,255,.035);
+      backdrop-filter: blur(18px);
+    }
+    .topbar { background: rgba(5, 15, 31, .75); border-bottom: 1px solid var(--line); backdrop-filter: blur(18px); }
+    .eyebrow { color: #91a6c8; font-size: .68rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .score-card { border: 1px solid var(--line); background: rgba(255,255,255,.045); }
+    .score-btn, .icon-btn, .secondary-btn, .primary-btn {
+      border: 1px solid var(--line); transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .score-btn:hover, .icon-btn:hover, .secondary-btn:hover, .primary-btn:hover { transform: translateY(-1px); }
+    .score-btn { width: 28px; height: 28px; border-radius: 9px; background: rgba(255,255,255,.06); color: #dce8fa; }
+    .score-btn:hover { background: rgba(255,255,255,.15); }
+    .icon-btn { background: rgba(255,255,255,.055); color: #dbe8ff; }
+    .icon-btn:hover { background: rgba(255,255,255,.12); }
+    .primary-btn { background: linear-gradient(135deg, #1478d4, #1765c2); border-color: rgba(93,177,255,.35); box-shadow: 0 8px 22px rgba(10, 91, 178, .22); }
+    .primary-btn:hover { background: linear-gradient(135deg, #238ce9, #1d72d4); }
+    .secondary-btn { background: rgba(255,255,255,.055); color: #e6edfa; }
+    .secondary-btn:hover { background: rgba(255,255,255,.11); }
+    .rosco-wrap { position: relative; width: min(100%, 430px); aspect-ratio: 1; margin: auto; }
+    .rosco-ring {
+      position: absolute; inset: 9.5%; border-radius: 50%;
+      border: 1px solid rgba(86, 159, 236, .23);
+      box-shadow: 0 0 0 12px rgba(47, 105, 179, .035), 0 0 45px rgba(36, 142, 223, .11), inset 0 0 35px rgba(35, 113, 197, .06);
+    }
+    .rosco-ring::before, .rosco-ring::after { content: ""; position: absolute; inset: 8%; border: 1px dashed rgba(102, 171, 235, .16); border-radius: 50%; }
+    .rosco-ring::after { inset: -8%; border: 1px solid rgba(73, 139, 218, .1); }
+    .rosco-node {
+      position: absolute; z-index: 2; display: grid; place-items: center;
+      width: clamp(32px, 8.3vw, 43px); height: clamp(32px, 8.3vw, 43px);
+      transform: translate(-50%, -50%); border-radius: 50%;
+      border: 1px solid rgba(130, 186, 255, .48); background: linear-gradient(145deg, #1a5eaa, #143d78);
+      color: white; font-family: "Montserrat", sans-serif; font-size: .92rem; font-weight: 900;
+      box-shadow: 0 4px 14px rgba(0,0,0,.32); cursor: pointer;
+      transition: transform .2s, box-shadow .2s, filter .2s;
+    }
+    .rosco-node:hover { transform: translate(-50%, -50%) scale(1.13); filter: brightness(1.18); }
+    .rosco-node.active { z-index: 3; color: #392400; border-color: #ffe294; background: linear-gradient(145deg, #ffe48c, #ffae32); box-shadow: 0 0 0 5px rgba(255,196,75,.14), 0 0 26px rgba(255,190,57,.7); animation: pulse 1.5s infinite; }
+    .rosco-node.passed { background: linear-gradient(145deg, #36c7ed, #1682b8); border-color: #8ceaff; color: #04283c; }
+    .rosco-node.solved { background: linear-gradient(145deg, #38e1a0, #159b72); border-color: #8affca; color: #032e20; }
+    .rosco-node.revealed { background: linear-gradient(145deg, #ff8092, #d64566); border-color: #ffb1bf; color: #3a0711; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 8px rgba(255,196,75,.08), 0 0 34px rgba(255,190,57,.85); } }
+    .rosco-center {
+      position: absolute; inset: 25%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 1px solid rgba(139, 184, 242, .17); border-radius: 50%;
+      background: radial-gradient(circle at 50% 30%, rgba(26, 72, 131, .69), rgba(7, 21, 43, .95) 72%);
+      box-shadow: inset 0 0 32px rgba(38, 118, 198, .14), 0 0 45px rgba(0,0,0,.25); text-align: center;
+    }
+    .center-letter { font-family: "Montserrat", sans-serif; font-weight: 900; font-size: clamp(2.4rem, 8vw, 4.1rem); line-height: 1; color: #fff; text-shadow: 0 0 24px rgba(72, 194, 255, .5); }
+    .center-word { max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #b7c8e3; font-size: clamp(.55rem, 1.8vw, .75rem); font-weight: 700; margin-top: .45rem; }
+    .center-progress { color: #6f89ad; font-size: .64rem; font-weight: 700; margin-top: .55rem; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .step { display: flex; align-items: center; gap: .55rem; color: #8195b4; font-size: .69rem; font-weight: 700; }
+    .step-num { display: grid; place-items: center; width: 23px; height: 23px; flex: 0 0 23px; border-radius: 50%; border: 1px solid rgba(155,184,225,.2); background: rgba(255,255,255,.04); font-size: .67rem; }
+    .step.current { color: #ffe09a; }
+    .step.current .step-num { border-color: rgba(255,203,85,.65); background: rgba(255,203,85,.17); color: #ffda84; }
+    .claim-card { min-height: 198px; }
+    .answer-box { animation: reveal-in .35s ease both; }
+    @keyframes reveal-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .timer-running { color: #ffda84; text-shadow: 0 0 18px rgba(255,203,85,.35); }
+    .modal-backdrop { background: rgba(2, 8, 20, .76); backdrop-filter: blur(8px); }
+    .form-field { background: rgba(4, 14, 29, .72); border: 1px solid rgba(155,184,225,.2); color: #f4f7ff; outline: none; }
+    .form-field:focus { border-color: rgba(69,215,245,.75); box-shadow: 0 0 0 3px rgba(69,215,245,.1); }
+    .toast { animation: toast-in .22s ease-out both; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 640px) {
+      .rosco-wrap { width: min(100%, 360px); }
+      .claim-card { min-height: 176px; }
+      .step { font-size: .59rem; gap: .35rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar sticky top-0 z-30">
+    <div class="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <div class="flex min-w-[220px] items-center gap-3">
+        <div class="grid h-11 w-11 place-items-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-200 shadow-lg shadow-cyan-950/30">
+          <i class="fa-solid fa-bolt text-xl" aria-hidden="true"></i>
+        </div>
+        <div>
+          <p class="eyebrow">Juego 6 · Electricidad</p>
+          <h1 class="display-font text-base font-extrabold tracking-tight text-white sm:text-lg">El Rosco Eléctrico</h1>
+          <p class="text-[11px] font-semibold text-slate-400">Pasapalabra · Adivina la palabra</p>
+        </div>
+      </div>
+
+      <div class="order-3 flex w-full items-center justify-center gap-2 sm:order-2 sm:w-auto sm:gap-3" aria-label="Marcador de equipos">
+        <div class="score-card flex items-center gap-2 rounded-xl px-2.5 py-2 sm:gap-3 sm:px-3">
+          <div><p class="text-[10px] font-extrabold uppercase tracking-wider text-cyan-200">Equipo 1</p><p id="score-1" class="display-font text-lg font-black leading-5">0</p></div>
+          <div class="flex flex-col gap-1">
+            <button class="score-btn" data-score="1" data-delta="1" aria-label="Sumar punto al Equipo 1"><i class="fa-solid fa-plus text-[10px]"></i></button>
+            <button class="score-btn" data-score="1" data-delta="-1" aria-label="Restar punto al Equipo 1"><i class="fa-solid fa-minus text-[10px]"></i></button>
+          </div>
+        </div>
+        <span class="display-font text-xs font-black text-slate-600">VS</span>
+        <div class="score-card flex items-center gap-2 rounded-xl px-2.5 py-2 sm:gap-3 sm:px-3">
+          <div><p class="text-[10px] font-extrabold uppercase tracking-wider text-rose-200">Equipo 2</p><p id="score-2" class="display-font text-lg font-black leading-5">0</p></div>
+          <div class="flex flex-col gap-1">
+            <button class="score-btn" data-score="2" data-delta="1" aria-label="Sumar punto al Equipo 2"><i class="fa-solid fa-plus text-[10px]"></i></button>
+            <button class="score-btn" data-score="2" data-delta="-1" aria-label="Restar punto al Equipo 2"><i class="fa-solid fa-minus text-[10px]"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <nav class="order-2 ml-auto flex items-center gap-2 sm:order-3" aria-label="Herramientas">
+        <button id="variant-open" class="icon-btn flex h-10 items-center gap-2 rounded-xl px-3 text-xs font-bold" title="Crear definiciones">
+          <i class="fa-solid fa-wand-magic-sparkles text-violet-300"></i><span class="hidden md:inline">Crear definiciones</span><span class="md:hidden">Crear</span>
+        </button>
+        <button id="rules-open" class="icon-btn grid h-10 w-10 place-items-center rounded-xl" aria-label="Abrir reglas" title="Reglas / Cómo se juega">
+          <i class="fa-regular fa-circle-question"></i>
+        </button>
+        <button id="sound-toggle" class="icon-btn grid h-10 w-10 place-items-center rounded-xl" aria-label="Silenciar efectos de sonido" title="Sonido activado">
+          <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+    <div class="grid items-start gap-5 lg:grid-cols-[minmax(350px,.88fr)_minmax(520px,1.35fr)] xl:gap-7">
+      <section class="glass rounded-3xl p-4 sm:p-6" aria-labelledby="rosco-heading">
+        <div class="mb-1 flex items-start justify-between gap-3">
+          <div>
+            <p class="eyebrow">La rueda de letras</p>
+            <h2 id="rosco-heading" class="display-font mt-1 text-lg font-extrabold">El Rosco</h2>
+          </div>
+          <div class="rounded-full border border-blue-300/15 bg-blue-400/5 px-3 py-1.5 text-[10px] font-extrabold tracking-wider text-blue-200">
+            <i class="fa-solid fa-bolt mr-1"></i> ELECTRICIDAD
+          </div>
+        </div>
+        <div id="rosco" class="rosco-wrap mt-3" aria-label="Letras del rosco"></div>
+        <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-white/[.07] pt-4 text-[10px] font-semibold text-slate-400">
+          <span class="flex items-center gap-1.5"><i class="legend-dot bg-blue-500"></i>Pendiente</span>
+          <span class="flex items-center gap-1.5"><i class="legend-dot bg-amber-400"></i>Activa</span>
+          <span class="flex items-center gap-1.5"><i class="legend-dot bg-cyan-400"></i>Pasapalabra</span>
+          <span class="flex items-center gap-1.5"><i class="legend-dot bg-emerald-400"></i>Adivinada</span>
+          <span class="flex items-center gap-1.5"><i class="legend-dot bg-rose-400"></i>Revelada</span>
+        </div>
+        <p class="mt-3 text-center text-[11px] text-slate-500">Selecciona cualquier letra para abrir su desafío.</p>
+      </section>
+
+      <div class="space-y-5">
+        <section class="glass rounded-3xl p-4 sm:p-5" aria-labelledby="dynamic-heading">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="eyebrow">Dinámica áulica</p>
+              <h2 id="dynamic-heading" class="display-font mt-1 text-lg font-extrabold">¡Escucha, piensa y responde!</h2>
+            </div>
+            <div class="flex min-w-[136px] items-center justify-center gap-2 rounded-2xl border border-amber-300/15 bg-amber-300/[.06] px-4 py-2">
+              <i class="fa-regular fa-clock text-amber-300"></i>
+              <span id="timer" class="display-font text-2xl font-black tabular-nums">30</span>
+              <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-100/60">seg</span>
+            </div>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+            <div id="step-1" class="step current"><span class="step-num">1</span><span>Escucha la<br class="sm:hidden"> definición</span></div>
+            <div id="step-2" class="step"><span class="step-num">2</span><span>Piensa la<br class="sm:hidden"> palabra</span></div>
+            <div id="step-3" class="step"><span class="step-num">3</span><span>Responde antes<br class="sm:hidden"> del tiempo</span></div>
+          </div>
+        </section>
+
+        <section class="glass claim-card rounded-3xl p-5 sm:p-6" aria-live="polite">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="claim-letter" class="display-font grid h-10 w-10 place-items-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-xl font-black text-cyan-200">A</span>
+            <div class="min-w-0 flex-1">
+              <p class="eyebrow">Letra · respuesta oculta</p>
+              <h2 id="claim-word" class="display-font truncate text-base font-extrabold text-white sm:text-lg">Palabra por descubrir</h2>
+            </div>
+            <span id="custom-tag" class="hidden rounded-full border border-violet-300/25 bg-violet-400/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-violet-200">
+              <i class="fa-solid fa-users mr-1"></i>Creada por estudiantes
+            </span>
+          </div>
+          <div class="mt-5 border-l-2 border-cyan-300/50 pl-4">
+            <p class="eyebrow">Definición</p>
+            <p id="claim-text" class="mt-2 text-lg font-semibold leading-relaxed text-slate-100 sm:text-xl"></p>
+          </div>
+          <form id="answer-form" class="mt-5 flex flex-col gap-2 sm:flex-row">
+            <label class="sr-only" for="student-answer">Palabra que responde el alumno</label>
+            <input id="student-answer" name="student-answer" class="form-field min-h-11 min-w-0 flex-1 rounded-xl px-4 text-sm" autocomplete="off" placeholder="Escribe la palabra que dijo el alumno…" required>
+            <button id="check-answer" type="submit" class="primary-btn min-h-11 rounded-xl px-5 text-xs font-extrabold"><i class="fa-solid fa-check mr-2"></i>Comprobar</button>
+            <button id="reveal-btn" type="button" class="secondary-btn min-h-11 rounded-xl px-4 text-xs font-extrabold"><i class="fa-solid fa-eye mr-2"></i>Mostrar respuesta</button>
+          </form>
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <p class="flex items-center gap-2 text-[10px] font-semibold text-slate-500"><i class="fa-solid fa-microphone-lines text-cyan-300"></i>La profe lee la definición; el alumno responde en voz alta.</p>
+            <label class="flex items-center gap-2 text-[10px] font-bold text-slate-400">Turno
+              <select id="active-team" class="form-field rounded-lg px-2 py-1.5 text-[10px]">
+                <option value="1">Equipo 1</option><option value="2">Equipo 2</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section id="answer-box" class="hidden rounded-3xl border p-4 sm:p-5" aria-live="polite"></section>
+
+        <section class="glass rounded-3xl p-4 sm:p-5">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <button id="timer-toggle" class="secondary-btn flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold"><i id="timer-icon" class="fa-solid fa-play text-amber-300"></i><span id="timer-label">Iniciar: 30s</span></button>
+            <button id="pass-btn" class="secondary-btn flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold text-cyan-100"><i class="fa-solid fa-forward-step text-cyan-300"></i>¡Pasapalabra!</button>
+            <button id="next-btn" class="secondary-btn flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold"><i class="fa-solid fa-arrow-right text-blue-300"></i>Siguiente letra</button>
+            <span class="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/[.07] bg-white/[.025] px-3 text-center text-[10px] font-bold text-slate-500"><i class="fa-solid fa-stopwatch text-amber-300"></i>30 segundos por definición</span>
+          </div>
+          <p class="mt-3 text-center text-[10px] text-slate-500">Escribe la palabra que dice el alumno para comprobarla; también puedes jugar solo de forma oral.</p>
+        </section>
+      </div>
+    </div>
+    <footer class="py-6 text-center text-[10px] font-medium text-slate-600">Aprender electricidad también es pensar, recordar y decir la palabra. <i class="fa-solid fa-bolt text-cyan-400/60"></i></footer>
+  </main>
+
+  <div id="toast-region" class="pointer-events-none fixed bottom-4 right-4 z-[70] flex max-w-[calc(100%-2rem)] flex-col items-end gap-2" aria-live="polite" aria-atomic="true"></div>
+
+  <div id="rules-modal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+    <div class="glass my-auto w-full max-w-xl rounded-3xl p-5 sm:p-7">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="eyebrow">Guía para el aula</p><h2 id="rules-title" class="display-font mt-1 text-xl font-extrabold">¿Cómo se juega?</h2></div>
+        <button class="modal-close icon-btn grid h-9 w-9 place-items-center rounded-xl" aria-label="Cerrar reglas"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <ol class="mt-5 space-y-4 text-sm leading-relaxed text-slate-300">
+        <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-blue-400/15 text-xs font-black text-blue-200">1</span><span><b class="text-white">Escucha:</b> la profe elige una letra y lee en voz alta la definición. La palabra clave permanece oculta.</span></li>
+        <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-blue-400/15 text-xs font-black text-blue-200">2</span><span><b class="text-white">Responde:</b> el alumno dice la palabra antes de que termine el cronómetro de 30 segundos. La profe puede escribir la respuesta para comprobarla.</span></li>
+        <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-blue-400/15 text-xs font-black text-blue-200">3</span><span><b class="text-white">Puntúa:</b> si acierta, suma un punto al equipo del turno. Si no recuerda la palabra, puede pasar y volver a esa letra después.</span></li>
+        <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-cyan-400/15 text-xs font-black text-cyan-200"><i class="fa-solid fa-forward-step"></i></span><span><b class="text-white">¡Pasapalabra!</b> pulsa el botón para dejar la letra pendiente y avanzar a la siguiente. Las letras ya resueltas se pueden repasar.</span></li>
+      </ol>
+      <div class="mt-5 rounded-2xl border border-amber-300/15 bg-amber-300/[.05] p-3 text-xs leading-relaxed text-amber-100/80"><i class="fa-solid fa-triangle-exclamation mr-1 text-amber-300"></i> Para experimentar circuitos, utiliza solo pilas de baja tensión; nunca conectes materiales del aula a la red eléctrica.</div>
+      <button class="modal-close primary-btn mt-5 w-full rounded-xl px-4 py-3 text-sm font-extrabold">¡Entendido!</button>
+    </div>
+  </div>
+
+  <div id="variant-modal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="variant-title">
+    <div class="glass my-auto w-full max-w-3xl rounded-3xl p-5 sm:p-7">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="eyebrow">Desafío entre equipos</p><h2 id="variant-title" class="display-font mt-1 text-xl font-extrabold">Crear dos definiciones</h2><p class="mt-1 text-xs text-slate-400">Escriban la palabra y su definición; el orden se mezclará para el otro equipo.</p></div>
+        <button class="modal-close icon-btn grid h-9 w-9 flex-none place-items-center rounded-xl" aria-label="Cerrar formulario"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="variant-form" class="mt-5">
+        <label class="mb-4 block text-xs font-bold text-slate-300">Equipo que crea el desafío
+          <select id="creator-team" class="form-field mt-1.5 w-full rounded-xl px-3 py-2.5 text-sm">
+            <option value="Equipo 1">Equipo 1</option><option value="Equipo 2">Equipo 2</option>
+          </select>
+        </label>
+        <div class="grid gap-4 md:grid-cols-2">
+          <fieldset class="rounded-2xl border border-emerald-300/20 bg-emerald-400/[.035] p-4">
+            <legend class="px-2 text-xs font-black uppercase tracking-wider text-emerald-200"><i class="fa-solid fa-lightbulb mr-1"></i>Definición 1</legend>
+            <label class="mb-3 block text-[11px] font-bold text-slate-300">Letra
+              <input name="first-letter" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm uppercase" maxlength="3" required placeholder="Ej. B">
+            </label>
+            <label class="mb-3 block text-[11px] font-bold text-slate-300">Palabra respuesta
+              <input name="first-word" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm" maxlength="40" required placeholder="Ej. Batería">
+            </label>
+            <label class="mb-3 block text-[11px] font-bold text-slate-300">Definición
+              <textarea name="first-text" class="form-field mt-1 block min-h-20 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="220" required placeholder="Describe la palabra sin nombrarla"></textarea>
+            </label>
+            <label class="block text-[11px] font-bold text-slate-300">Pista / explicación (opcional)
+              <textarea name="first-reason" class="form-field mt-1 block min-h-16 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="300" placeholder="Una pista adicional si hace falta"></textarea>
+            </label>
+          </fieldset>
+          <fieldset class="rounded-2xl border border-rose-300/20 bg-rose-400/[.035] p-4">
+            <legend class="px-2 text-xs font-black uppercase tracking-wider text-rose-200"><i class="fa-solid fa-lightbulb mr-1"></i>Definición 2</legend>
+            <label class="mb-3 block text-[11px] font-bold text-slate-300">Letra
+              <input name="second-letter" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm uppercase" maxlength="3" required placeholder="Ej. B">
+            </label>
+            <label class="mb-3 block text-[11px] font-bold text-slate-300">Palabra respuesta
+              <input name="second-word" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm" maxlength="40" required placeholder="Ej. Bombilla">
+            </label>
+            <label class="mb-3 block text-[11px] font-bold text-slate-300">Definición
+              <textarea name="second-text" class="form-field mt-1 block min-h-20 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="220" required placeholder="Describe la palabra sin nombrarla"></textarea>
+            </label>
+            <label class="block text-[11px] font-bold text-slate-300">Pista / explicación (opcional)
+              <textarea name="second-reason" class="form-field mt-1 block min-h-16 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="300" placeholder="Una pista adicional si hace falta"></textarea>
+            </label>
+          </fieldset>
+        </div>
+        <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" class="modal-close secondary-btn rounded-xl px-5 py-2.5 text-sm font-bold">Cancelar</button>
+          <button type="submit" class="primary-btn rounded-xl px-5 py-2.5 text-sm font-extrabold"><i class="fa-solid fa-shuffle mr-2"></i>Mezclar y añadir al Rosco</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // Las diez definiciones oficiales del rosco y sus respuestas aceptadas.
+    const claims = [
+      { letter: "A", word: "Alternador", accepted: ["alternador"], text: "Máquina eléctrica que convierte energía mecánica en eléctrica; tiene un rotor móvil y un estator fijo.", reason: "El rotor gira y, mediante inducción electromagnética, el alternador genera corriente eléctrica." },
+      { letter: "C", word: "Corriente eléctrica", accepted: ["corriente", "corriente electrica"], text: "Movimiento ordenado de cargas eléctricas a través de un material conductor.", reason: "La corriente eléctrica es el flujo de cargas que circula por un circuito cerrado." },
+      { letter: "D", word: "Distribución", accepted: ["distribucion"], text: "Parte de la red eléctrica que reparte la energía desde las subestaciones hasta los usuarios.", reason: "A diferencia del transporte a larga distancia, la distribución lleva la energía hasta hogares y otros consumidores." },
+      { letter: "E", word: "Enchufe", accepted: ["enchufe", "toma de corriente"], text: "Punto de conexión de una instalación eléctrica a la red de una vivienda. En clase no se usa para probar circuitos.", reason: "La tensión de red es peligrosa: para las actividades escolares se utilizan pilas." },
+      { letter: "I", word: "Interruptor", accepted: ["interruptor"], text: "Dispositivo que abre o cierra un circuito y mantiene su posición hasta volver a accionarlo.", reason: "A diferencia del pulsador, el interruptor conserva la posición de encendido o apagado." },
+      { letter: "N", word: "Neutrón", accepted: ["neutron"], text: "Partícula del núcleo atómico que no tiene carga eléctrica.", reason: "El neutrón es eléctricamente neutro; los protones tienen carga positiva y los electrones negativa." },
+      { letter: "P", word: "Pila", accepted: ["pila", "bateria", "batería"], text: "Fuente electroquímica que entrega energía para impulsar las cargas eléctricas de un circuito.", reason: "La pila proporciona energía al circuito; no es lo mismo que la carga eléctrica." },
+      { letter: "R", word: "Repulsión", accepted: ["repulsion"], text: "Fuerza que hace que dos cargas eléctricas del mismo signo se alejen entre sí.", reason: "Las cargas de igual signo se repelen; las de signo opuesto se atraen." },
+      { letter: "S", word: "Serie", accepted: ["serie", "circuito en serie"], text: "Tipo de conexión eléctrica en la que los componentes tienen un único camino para la corriente.", reason: "En una conexión en serie hay un solo camino; en paralelo hay varias ramas." },
+      { letter: "T", word: "Tensión", accepted: ["tension", "voltaje"], text: "Diferencia de potencial eléctrico entre dos puntos, medida en voltios; se eleva para transportar energía con menos pérdidas.", reason: "Al elevar la tensión para transportar la misma potencia, disminuye la corriente y se reducen las pérdidas por calor." }
+    ].map((claim, id) => ({ ...claim, id, status: "pending", custom: false }));
+
+    const state = {
+      currentId: claims[0].id,
+      scores: { 1: 0, 2: 0 },
+      timerSeconds: 30,
+      timerInterval: null,
+      soundOn: true,
+      audioContext: null
+    };
+
+    // Audio sintetizado localmente: no requiere archivos de sonido externos.
+    const $ = (selector) => document.querySelector(selector);
+    const rosco = $("#rosco");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const currentClaim = () => claims.find((claim) => claim.id === state.currentId);
+    const isResolved = (claim) => claim.status === "solved" || claim.status === "revealed";
+
+    function playTone(frequency = 600, duration = 0.1, type = "sine") {
+      if (!state.soundOn) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        state.audioContext ??= new AudioContextClass();
+        if (state.audioContext.state === "suspended") state.audioContext.resume();
+        const oscillator = state.audioContext.createOscillator();
+        const gain = state.audioContext.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, state.audioContext.currentTime);
+        gain.gain.setValueAtTime(0.08, state.audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(state.audioContext.destination);
+        oscillator.start();
+        oscillator.stop(state.audioContext.currentTime + duration);
+      } catch (error) {
+        console.warn("No se pudo reproducir el efecto de sonido.", error);
+      }
+    }
+
+    function toast(message, tone = "info") {
+      const colors = {
+        info: "border-blue-300/20 bg-slate-900/95 text-blue-100",
+        success: "border-emerald-300/25 bg-slate-900/95 text-emerald-100",
+        warning: "border-amber-300/25 bg-slate-900/95 text-amber-100"
+      };
+      const icons = { info: "fa-circle-info", success: "fa-circle-check", warning: "fa-triangle-exclamation" };
+      const item = document.createElement("div");
+      item.className = `toast pointer-events-auto flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold shadow-2xl ${colors[tone]}`;
+      const icon = document.createElement("i");
+      icon.className = `fa-solid ${icons[tone]}`;
+      const text = document.createElement("span");
+      text.textContent = message;
+      item.append(icon, text);
+      $("#toast-region").append(item);
+      window.setTimeout(() => item.remove(), 3200);
+    }
+
+    function solvedCount() {
+      return claims.filter(isResolved).length;
+    }
+
+    // Las letras se distribuyen en un círculo con trigonometría, incluso si se agregan más.
+    function renderRosco() {
+      rosco.replaceChildren();
+      const ring = document.createElement("div");
+      ring.className = "rosco-ring";
+      ring.setAttribute("aria-hidden", "true");
+      rosco.append(ring);
+
+      const center = document.createElement("div");
+      center.className = "rosco-center";
+      const letter = document.createElement("span");
+      letter.className = "center-letter";
+      const word = document.createElement("span");
+      word.className = "center-word";
+      const progress = document.createElement("span");
+      progress.className = "center-progress";
+      const active = currentClaim();
+      letter.textContent = active?.letter ?? "✓";
+      word.textContent = active ? (isResolved(active) ? active.word : "Palabra por descubrir") : "Rosco completo";
+      progress.textContent = `${solvedCount()} / ${claims.length} resueltas`;
+      center.append(letter, word, progress);
+      rosco.append(center);
+
+      const radius = 43;
+      claims.forEach((claim, index) => {
+        const angle = (2 * Math.PI * index / claims.length) - Math.PI / 2;
+        const node = document.createElement("button");
+        node.type = "button";
+        node.className = `rosco-node${claim.id === state.currentId ? " active" : ""}${claim.status === "passed" ? " passed" : ""}${claim.status === "solved" ? " solved" : ""}${claim.status === "revealed" ? " revealed" : ""}`;
+        node.style.left = `${50 + radius * Math.cos(angle)}%`;
+        node.style.top = `${50 + radius * Math.sin(angle)}%`;
+        node.textContent = claim.letter;
+        const answerText = isResolved(claim) ? ` · ${claim.word}` : "";
+        node.title = `Letra ${claim.letter}${answerText}${claim.status === "passed" ? " · Pasapalabra" : ""}`;
+        node.setAttribute("aria-label", `Letra ${claim.letter}${answerText}${claim.status === "passed" ? ", pasapalabra" : ""}${claim.id === state.currentId ? ", activa" : ""}`);
+        node.setAttribute("aria-current", claim.id === state.currentId ? "true" : "false");
+        node.addEventListener("click", () => selectClaim(claim.id));
+        rosco.append(node);
+      });
+    }
+
+    function renderClaim() {
+      const claim = currentClaim();
+      if (!claim) {
+        $("#claim-letter").textContent = "✓";
+        $("#claim-word").textContent = "¡Rosco completo!";
+        $("#claim-text").textContent = "Se han recorrido todas las definiciones.";
+        $("#custom-tag").classList.add("hidden");
+        $("#student-answer").disabled = true;
+        $("#check-answer").disabled = true;
+        $("#reveal-btn").disabled = true;
+        $("#timer-toggle").disabled = true;
+        $("#pass-btn").disabled = true;
+        $("#answer-box").classList.add("hidden");
+        return;
+      }
+      $("#claim-letter").textContent = claim.letter;
+      $("#claim-word").textContent = isResolved(claim) ? claim.word : "Palabra por descubrir";
+      $("#claim-text").textContent = claim.text;
+      $("#custom-tag").classList.toggle("hidden", !claim.custom);
+      $("#student-answer").value = "";
+      $("#student-answer").disabled = isResolved(claim);
+      $("#check-answer").disabled = isResolved(claim);
+      $("#reveal-btn").disabled = isResolved(claim);
+      $("#pass-btn").disabled = isResolved(claim);
+      $("#timer-toggle").disabled = isResolved(claim);
+      $("#answer-box").classList.add("hidden");
+      if (isResolved(claim)) {
+        renderOfficialAnswer(claim);
+      } else {
+        updateSteps(1);
+      }
+    }
+
+    function selectClaim(id) {
+      const claim = claims.find((item) => item.id === id);
+      if (!claim) return;
+      stopTimer(true);
+      state.currentId = id;
+      state.timerSeconds = 30;
+      updateTimerDisplay();
+      renderRosco();
+      renderClaim();
+      playTone(520, 0.08);
+    }
+
+    function findNextUnresolved(fromId = state.currentId) {
+      const start = claims.findIndex((claim) => claim.id === fromId);
+      for (let offset = 1; offset <= claims.length; offset += 1) {
+        const claim = claims[(start + offset + claims.length) % claims.length];
+        if (!isResolved(claim)) return claim;
+      }
+      return null;
+    }
+
+    function goNext() {
+      const next = findNextUnresolved();
+      if (!next) {
+        state.currentId = null;
+        renderRosco();
+        renderClaim();
+        toast("¡Rosco completo! Han resuelto todas las afirmaciones.", "success");
+        playTone(880, 0.22);
+        return;
+      }
+      selectClaim(next.id);
+    }
+
+    function updateSteps(activeStep) {
+      [1, 2, 3].forEach((step) => $(`#step-${step}`).classList.toggle("current", step === activeStep));
+    }
+
+    function renderOfficialAnswer(claim) {
+      const correct = claim.status === "solved";
+      const panel = $("#answer-box");
+      panel.className = `answer-box rounded-3xl border p-4 sm:p-5 ${correct ? "border-emerald-300/30 bg-emerald-400/[.07]" : "border-rose-300/30 bg-rose-400/[.07]"}`;
+      panel.replaceChildren();
+      const row = document.createElement("div");
+      row.className = "flex flex-wrap items-start justify-between gap-3";
+      const heading = document.createElement("div");
+      const label = document.createElement("p");
+      label.className = "eyebrow";
+      label.textContent = correct ? "¡Respuesta correcta!" : "Respuesta";
+      const answer = document.createElement("p");
+      answer.className = `display-font mt-1 text-2xl font-black ${correct ? "text-emerald-300" : "text-rose-300"}`;
+      answer.textContent = claim.word;
+      heading.append(label, answer);
+      const badge = document.createElement("span");
+      badge.className = `rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${correct ? "bg-emerald-300/10 text-emerald-200" : "bg-rose-300/10 text-rose-200"}`;
+      badge.textContent = correct ? `+1 ${claim.solvedTeam ?? $("#active-team").selectedOptions[0].textContent}` : "Definición revelada";
+      row.append(heading, badge);
+      const explanationLabel = document.createElement("p");
+      explanationLabel.className = "mt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400";
+      explanationLabel.textContent = "Pista / explicación";
+      const explanation = document.createElement("p");
+      explanation.className = "mt-1 text-sm leading-relaxed text-slate-200";
+      explanation.textContent = claim.reason;
+      panel.append(row, explanationLabel, explanation);
+      panel.classList.remove("hidden");
+      updateSteps(3);
+    }
+
+    function revealAnswer() {
+      const claim = currentClaim();
+      if (!claim) {
+        toast("No hay una definición activa para revelar.", "warning");
+        return;
+      }
+      if (isResolved(claim)) {
+        renderOfficialAnswer(claim);
+        toast(`La respuesta es ${claim.word}.`, "info");
+        return;
+      }
+      stopTimer(true);
+      claim.status = "revealed";
+      renderRosco();
+      renderClaim();
+      toast(`La respuesta era: ${claim.word}.`, "info");
+      playTone(360, 0.16, "triangle");
+    }
+
+    function normalizeAnswer(value) {
+      return value.trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    }
+
+    function checkAnswer(event) {
+      event.preventDefault();
+      const claim = currentClaim();
+      if (!claim || isResolved(claim)) return;
+      const response = normalizeAnswer($("#student-answer").value);
+      if (!response) {
+        $("#student-answer").focus();
+        toast("Escribe o introduce la palabra que respondió el alumno.", "warning");
+        return;
+      }
+      const accepted = [claim.word, ...(claim.accepted ?? [])].map(normalizeAnswer);
+      updateSteps(3);
+      if (!accepted.includes(response)) {
+        toast("Todavía no es esa palabra. ¡Puedes intentarlo de nuevo o pasar!", "warning");
+        playTone(250, 0.12, "triangle");
+        $("#student-answer").select();
+        return;
+      }
+      stopTimer(true);
+      claim.status = "solved";
+      const team = $("#active-team").value;
+      claim.solvedTeam = `Equipo ${team}`;
+      state.scores[team] += 1;
+      $(`#score-${team}`).textContent = String(state.scores[team]);
+      renderRosco();
+      renderClaim();
+      renderOfficialAnswer(claim);
+      toast(`¡Correcto! ${claim.word}. Punto para el Equipo ${team}.`, "success");
+      playTone(780, 0.18);
+    }
+
+    function passClaim() {
+      const claim = currentClaim();
+      if (!claim || isResolved(claim)) {
+        toast("No hay una letra pendiente para pasar.", "warning");
+        return;
+      }
+      claim.status = "passed";
+      toast(`Letra ${claim.letter} pendiente para la próxima vuelta.`, "info");
+      playTone(420, 0.12);
+      goNext();
+    }
+
+    function updateTimerDisplay() {
+      $("#timer").textContent = String(state.timerSeconds).padStart(2, "0");
+      $("#timer").classList.toggle("timer-running", Boolean(state.timerInterval));
+    }
+
+    function stopTimer(reset = false) {
+      if (state.timerInterval) window.clearInterval(state.timerInterval);
+      state.timerInterval = null;
+      $("#timer-icon").className = "fa-solid fa-play text-amber-300";
+      $("#timer-label").textContent = "Iniciar: 30s";
+      if (reset) state.timerSeconds = 30;
+      updateTimerDisplay();
+    }
+
+    // El cronómetro de cada definición conserva el tiempo restante al pausar.
+    function toggleTimer() {
+      if (state.timerInterval) {
+        stopTimer();
+        toast("Cronómetro en pausa.", "info");
+        return;
+      }
+      if (state.timerSeconds <= 0) state.timerSeconds = 30;
+      state.timerInterval = window.setInterval(() => {
+        state.timerSeconds -= 1;
+        updateTimerDisplay();
+        if (state.timerSeconds <= 0) {
+          stopTimer();
+          state.timerSeconds = 0;
+          updateTimerDisplay();
+          toast("¡Se acabó el tiempo! Pasamos a la siguiente letra.", "warning");
+          playTone(240, 0.35, "triangle");
+          passClaim();
+        } else if (state.timerSeconds <= 5) {
+          playTone(660, 0.04);
+        }
+      }, 1000);
+      $("#timer-icon").className = "fa-solid fa-pause text-amber-300";
+      $("#timer-label").textContent = "Pausar";
+      updateTimerDisplay();
+      updateSteps(2);
+      playTone(620, 0.08);
+    }
+
+    function openModal(id) {
+      const modal = $(`#${id}`);
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      document.body.style.overflow = "hidden";
+      modal.querySelector(".modal-close")?.focus();
+    }
+
+    function closeModal(modal) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      document.body.style.overflow = "";
+    }
+
+    function shuffle(items) {
+      for (let index = items.length - 1; index > 0; index -= 1) {
+        const other = Math.floor(Math.random() * (index + 1));
+        [items[index], items[other]] = [items[other], items[index]];
+      }
+      return items;
+    }
+
+    // Cada envío agrega dos definiciones nuevas y las presenta en orden aleatorio.
+    function addCustomPair(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      if (!form.reportValidity()) return;
+      const data = new FormData(form);
+      const creator = $("#creator-team").value;
+      const pair = [
+        {
+          letter: String(data.get("first-letter")).trim().toLocaleUpperCase("es"),
+          word: String(data.get("first-word")).trim(),
+          text: String(data.get("first-text")).trim(),
+          reason: String(data.get("first-reason")).trim() || "¡Muy bien! Esa es la palabra."
+        },
+        {
+          letter: String(data.get("second-letter")).trim().toLocaleUpperCase("es"),
+          word: String(data.get("second-word")).trim(),
+          text: String(data.get("second-text")).trim(),
+          reason: String(data.get("second-reason")).trim() || "¡Muy bien! Esa es la palabra."
+        }
+      ];
+      const newClaims = shuffle(pair).map((claim) => ({
+        ...claim,
+        id: claims.length,
+        status: "pending",
+        custom: true,
+        creator,
+        accepted: [claim.word]
+      }));
+      newClaims[1].id += 1;
+      claims.push(...newClaims);
+      $("#active-team").value = creator === "Equipo 1" ? "2" : "1";
+      stopTimer(true);
+      state.currentId = newClaims[0].id;
+      renderRosco();
+      renderClaim();
+      closeModal($("#variant-modal"));
+      form.reset();
+      toast(`Dos definiciones de ${creator} añadidas. ¡El orden es sorpresa!`, "success");
+      playTone(700, 0.13);
+    }
+
+    document.querySelectorAll("[data-score]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const team = button.dataset.score;
+        const delta = Number(button.dataset.delta);
+        state.scores[team] = Math.max(0, state.scores[team] + delta);
+        $(`#score-${team}`).textContent = String(state.scores[team]);
+        playTone(delta > 0 ? 720 : 360, 0.07);
+      });
+    });
+    $("#timer-toggle").addEventListener("click", toggleTimer);
+    $("#pass-btn").addEventListener("click", passClaim);
+    $("#reveal-btn").addEventListener("click", revealAnswer);
+    $("#answer-form").addEventListener("submit", checkAnswer);
+    $("#next-btn").addEventListener("click", goNext);
+    $("#variant-open").addEventListener("click", () => openModal("variant-modal"));
+    $("#rules-open").addEventListener("click", () => openModal("rules-modal"));
+    $("#variant-form").addEventListener("submit", addCustomPair);
+    $("#sound-toggle").addEventListener("click", () => {
+      state.soundOn = !state.soundOn;
+      $("#sound-icon").className = `fa-solid ${state.soundOn ? "fa-volume-high" : "fa-volume-xmark"}`;
+      $("#sound-toggle").setAttribute("aria-label", state.soundOn ? "Silenciar efectos de sonido" : "Activar efectos de sonido");
+      $("#sound-toggle").title = state.soundOn ? "Sonido activado" : "Sonido silenciado";
+      if (state.soundOn) playTone(680, 0.1);
+      toast(state.soundOn ? "Efectos de sonido activados." : "Efectos de sonido silenciados.", "info");
+    });
+    document.querySelectorAll(".modal-close").forEach((button) => {
+      button.addEventListener("click", () => closeModal(button.closest('[role="dialog"]')));
+    });
+    document.querySelectorAll('[role="dialog"]').forEach((modal) => {
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeModal(modal);
+      });
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(closeModal);
+      }
+    });
+
+    if (reducedMotion) document.documentElement.classList.add("reduce-motion");
+    updateTimerDisplay();
+    renderRosco();
+    renderClaim();
+  </script>
+</body>
+</html>

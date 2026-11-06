@@ -3,8 +3,8 @@ const $=s=>document.querySelector(s),params=new URLSearchParams(location.search)
 const rol=params.get('rol')==='alumno'?'alumno':'docente';
 const modo=['registro','ingreso','recuperar'].includes(params.get('modo'))?params.get('modo'):'ingreso';
 const registro=modo==='registro',recuperar=modo==='recuperar';
-function enlace(m,perfil=rol) {const p=new URLSearchParams({modo:m,rol:perfil});for(const k of ['clase','materia'])if(params.get(k))p.set(k,params.get(k));return `acceso.html?${p}`;}
-function destino(){const p=new URLSearchParams();if(/^[a-z0-9]{6}$/i.test(params.get('clase')||''))p.set('codigo',params.get('clase').toUpperCase());if(params.get('materia'))p.set('materia',params.get('materia'));location.assign(`clases.html${p.size?'?'+p:''}`);}
+function enlace(m,perfil=rol) {const p=new URLSearchParams({modo:m,rol:perfil});for(const k of ['clase','materia','siguiente'])if(params.get(k))p.set(k,params.get(k));return `acceso.html?${p}`;}
+function destino(){if(params.get('siguiente')==='panel'){location.assign('panel.html');return;}const p=new URLSearchParams();if(/^[a-z0-9]{6}$/i.test(params.get('clase')||''))p.set('codigo',params.get('clase').toUpperCase());if(params.get('materia'))p.set('materia',params.get('materia'));location.assign(`clases.html${p.size?'?'+p:''}`);}
 $('#teacher-link').href=enlace('registro','docente');$('#student-link').href=enlace('registro','alumno');$(`#${rol==='docente'?'teacher':'student'}-link`).classList.add('active');
 $('#profile-switch').hidden=!registro;
 $('#profile-note').textContent=rol==='docente'?'Tu contenido enciende la clase.':'Tu lugar en la próxima ronda.';

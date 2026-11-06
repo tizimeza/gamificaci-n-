@@ -18,7 +18,8 @@ Abrí la dirección que muestra Wrangler (habitualmente `http://localhost:8787`)
 - `public/acceso.html?modo=registro&rol=alumno`: registro de alumnos.
 - `public/clases.html`: clases propias o inscripciones, invitaciones y actividades.
 - `public/panel.html`: biblioteca y editor de roscos.
-- `public/jugar.html?c=CODIGO`: jugador individual y ranking.
+- `public/jugar.html?c=CODIGO`: juego con código de rosco o de sala, y ranking.
+- `public/sala.html?id=SALA`: pantalla para proyectar y conducir una sala en vivo.
 - `public/matematica.html`: piloto de Matemática por equipos con PRISMO.
 - `public/aula.html`: Rosco Eléctrico original para proyectar.
 
@@ -29,6 +30,14 @@ Los dos últimos modos pueden abrirse directamente como archivos y guardan la pa
 El registro pide alias y contraseña, sin email. Al crear o recuperar una cuenta se entrega un código de recuperación que debe guardarse. El rol se elige al registrarse; las cuentas anteriores a la migración de clases conservan el rol docente por compatibilidad.
 
 El código de clase inscribe al alumno en un grupo. El código de rosco abre un desafío individual; también se mantiene ese acceso sin cuenta. Los roles, la pertenencia a clases y la propiedad del contenido se validan en la API. El ranking individual conserva el seudónimo por navegador; todavía no es un informe académico vinculado a la cuenta del alumno.
+
+El ingreso y el registro viven solo en `acceso.html`. Profes y alumnos pueden crear roscos desde «Mis roscos».
+
+## Sala en vivo
+
+Quien creó un rosco abre una sala desde «Mis roscos» o desde una clase. Comparte el código, ve quién entra y toca «Empezar»: tras cinco segundos de cuenta regresiva, todos juegan el mismo rosco con el mismo reloj y un marcador en vivo. Para jugar no hace falta cuenta. Quien llega tarde se suma con el tiempo que queda. Los resultados también cuentan para el ranking del rosco.
+
+Las pantallas consultan el estado cada 2 a 4 segundos, sin WebSockets, porque las redes escolares suelen bloquearlos. Las definiciones se entregan recién al llegar la hora de inicio, y el repaso con las respuestas aparece cuando cierra la sala, para que nadie se las pase al resto.
 
 ## Verificaciones
 

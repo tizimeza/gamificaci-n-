@@ -2,13 +2,16 @@ import { api, aviso, dibujarRanking, el, formatoTiempo, icono } from "./api.js";
 import { generarSeudonimo } from "./seudonimos.js";
 
 const $ = (selector) => document.querySelector(selector);
-const VISTAS = ["codigo", "inicio", "juego", "final"];
+const VISTAS = ["codigo", "inicio", "espera", "juego", "final"];
 const CADA_RANKING_MS = 5000;
+const SONDEO_ESPERA_MS = 2000;
+const SONDEO_JUEGO_MS = 4000;
 const codigo = new URLSearchParams(location.search).get("c")?.trim().toUpperCase() ?? "";
 
 const estado = {
   info: null, seudonimo: null, token: null, items: [], respuestas: {}, actual: null,
-  finMs: 0, reloj: null, ocupado: false, sondeo: null
+  finMs: 0, reloj: null, ocupado: false, sondeo: null,
+  sala: null, tokenSala: null, enCuenta: false, salaCerrada: false
 };
 
 function idJugador() {
@@ -41,6 +44,10 @@ function mostrarErrorInicio(mensaje) {
 }
 
 async function actualizarRanking(contenedor) {
+  if (estado.sala) {
+    dibujarRanking(contenedor, estado.sala.tabla);
+    return;
+  }
   try {
     const { ranking } = await api(`/r/${codigo}/ranking`, { encabezados: encabezadoJugador() });
     dibujarRanking(contenedor, ranking);
@@ -81,6 +88,17 @@ async function abrirInicio() {
     if (codigo) mostrarCodigoInvalido("Ese código no es válido.");
     return;
   }
+  // Salas y roscos usan el mismo campo de código.
+  const sala = await api(`/sala/${codigo}`, { encabezados: encabezadoJugador() }).catch((error) => {
+    if (error.estado === 404) return null;
+    throw error;
+  }).catch((error) => {
+    mostrar("codigo");
+    mostrarCodigoInvalido(error.message);
+    return undefined;
+  });
+  if (sala === undefined) return;
+  if (sala) return abrirSala(sala);
   try {
     estado.info = await api(`/r/${codigo}`);
   } catch (error) {
@@ -106,6 +124,7 @@ function mostrarCodigoInvalido(mensaje) {
 async function empezar() {
   $("#empezar").disabled = true;
   $("#inicio-error").classList.add("hidden");
+  if (estado.sala) return unirseASala();
   try {
     const partida = await api(`/r/${codigo}/intentos`, {
       metodo: "POST", cuerpo: { jugador: idJugador(), seudonimo: estado.seudonimo }
@@ -116,6 +135,141 @@ async function empezar() {
     mostrarErrorInicio(error.message);
     $("#empezar").disabled = false;
   }
+}
+
+// --- Sala en vivo
+
+function abrirSala(sala) {
+  estado.sala = sala;
+  document.title = `${sala.titulo} | RoscoLab`;
+  if (sala.seudonimo) return entrarEnSala(sala);
+  if (sala.estado === "terminada") {
+    mostrar("codigo");
+    mostrarCodigoInvalido("Esta sala ya terminó.");
+    return;
+  }
+  $("#inicio-materia").textContent = `Sala en vivo · ${sala.materia}`;
+  $("#inicio-titulo").textContent = sala.titulo;
+  $("#inicio-detalle").textContent = `${sala.letras} letras · ${formatoTiempo(sala.segundos * 1000)} minutos. Todos arrancan al mismo tiempo. Si errás una letra, no vuelve.`;
+  $("#inicio-ranking").parentElement.classList.add("hidden");
+  $("#empezar").textContent = "Entrar a la sala";
+  ofrecerSeudonimos();
+  mostrar("inicio");
+}
+
+async function unirseASala() {
+  try {
+    await api(`/sala/${codigo}/unirme`, { metodo: "POST", cuerpo: { jugador: idJugador(), seudonimo: estado.seudonimo } });
+    entrarEnSala(await api(`/sala/${codigo}`, { encabezados: encabezadoJugador() }));
+  } catch (error) {
+    mostrarErrorInicio(error.message);
+    if (error.estado === 409) ofrecerSeudonimos();
+    else $("#empezar").disabled = false;
+  }
+}
+
+function entrarEnSala(sala) {
+  $("#espera-titulo").textContent = sala.titulo;
+  $("#espera-yo").textContent = sala.seudonimo;
+  mostrar("espera");
+  atenderSala(sala);
+}
+
+function programarSondeo(espera) {
+  window.clearTimeout(estado.sondeo);
+  estado.sondeo = window.setTimeout(async () => {
+    try {
+      atenderSala(await api(`/sala/${codigo}`, { encabezados: encabezadoJugador() }));
+    } catch {
+      programarSondeo(espera); // Un corte breve de red no saca a nadie de la sala.
+    }
+  }, espera);
+}
+
+function dibujarTablaSala(sala) {
+  const yo = sala.tabla.find((fila) => fila.soyYo);
+  $("#vivo-posicion").classList.toggle("hidden", !yo?.aciertos);
+  if (yo) $("#vivo-posicion").textContent = `Vas en el puesto ${yo.posicion} de ${sala.jugadores}`;
+  $("#espera-tabla-caja").classList.toggle("hidden", sala.estado === "espera");
+  dibujarRanking($("#espera-tabla"), sala.tabla);
+}
+
+function atenderSala(sala) {
+  estado.sala = sala;
+  dibujarTablaSala(sala);
+  if (sala.estado === "espera") {
+    $("#espera-texto").textContent = `Ya entraste. Son ${sala.jugadores} en la sala; falta que empiece.`;
+    return programarSondeo(SONDEO_ESPERA_MS);
+  }
+  if (sala.estado === "terminada") return cerrarSala(sala);
+  if (estado.token || estado.tokenSala) {
+    if (!estado.token) $("#espera-texto").textContent = "Terminaste. Esperando al resto; el repaso aparece cuando cierre la sala.";
+    return programarSondeo(SONDEO_JUEGO_MS);
+  }
+  if (sala.comienzaEnMs > 0) return cuentaRegresiva(sala.comienzaEnMs);
+  abrirPartidaDeSala();
+}
+
+function cuentaRegresiva(ms) {
+  if (estado.enCuenta) return;
+  estado.enCuenta = true;
+  const fin = performance.now() + ms;
+  const caja = $("#espera-cuenta");
+  caja.classList.remove("hidden");
+  $("#espera-texto").textContent = "¡Prepará los dedos!";
+  const paso = () => {
+    const restante = fin - performance.now();
+    if (restante > 0) {
+      caja.textContent = String(Math.ceil(restante / 1000));
+      window.setTimeout(paso, 100);
+      return;
+    }
+    caja.classList.add("hidden");
+    estado.enCuenta = false;
+    abrirPartidaDeSala();
+  };
+  paso();
+}
+
+async function abrirPartidaDeSala() {
+  try {
+    const partida = await api(`/sala/${codigo}/partida`, { metodo: "POST", cuerpo: { jugador: idJugador() } });
+    estado.tokenSala = partida.token;
+    if (partida.terminada) {
+      estado.token = partida.token;
+      await terminar();
+    } else {
+      cargarPartida(partida);
+    }
+    programarSondeo(SONDEO_JUEGO_MS);
+  } catch (error) {
+    if (error.datos?.todaviaNo || error.estado === 0) {
+      window.setTimeout(abrirPartidaDeSala, 500);
+      return;
+    }
+    aviso(error.message, "mal");
+    programarSondeo(SONDEO_ESPERA_MS);
+  }
+}
+
+// Al cerrar la sala llegan el repaso y el marcador final.
+async function cerrarSala(sala) {
+  if (estado.salaCerrada) return;
+  estado.salaCerrada = true;
+  window.clearTimeout(estado.sondeo);
+  window.clearInterval(estado.reloj);
+  $("#espera-texto").textContent = "La sala terminó.";
+  // Tras recargar la página la referencia se pierde: la partida sigue guardada en el servidor.
+  const token = estado.tokenSala ?? estado.token ?? await api(`/sala/${codigo}/partida`, {
+    metodo: "POST", cuerpo: { jugador: idJugador() }
+  }).then((partida) => partida.token).catch(() => null);
+  if (!token) {
+    mostrar("espera");
+    $("#espera-tabla-caja").classList.remove("hidden");
+    return;
+  }
+  estado.token = token;
+  await terminar();
 }
 
 // --- Partida
@@ -223,6 +377,13 @@ async function terminar() {
 function mostrarFinal(resultado) {
   window.clearInterval(estado.reloj);
   estado.token = null;
+  if (resultado.salaAbierta) {
+    $("#espera-texto").textContent = "Terminaste. Esperando al resto; el repaso aparece cuando cierre la sala.";
+    $("#espera-yo").textContent = `${resultado.aciertos} de ${resultado.total} correctas`;
+    mostrar("espera");
+    programarSondeo(0); // El marcador en pantalla es del último ciclo: se trae el puntaje recién cerrado.
+    return;
+  }
   $("#final-puntaje").textContent = `${resultado.aciertos} / ${resultado.total}`;
   $("#final-detalle").textContent = `${resultado.errores} ${resultado.errores === 1 ? "error" : "errores"} · ${formatoTiempo(resultado.duracionMs)}`;
   const iconos = {
@@ -239,6 +400,10 @@ function mostrarFinal(resultado) {
   }));
   mostrar("final");
   actualizarRanking($("#final-ranking"));
+  if (estado.sala) {
+    ["#otra-vez", "#compartir", "#final-vivo"].forEach((selector) => $(selector).classList.add("hidden"));
+    return;
+  }
   window.clearInterval(estado.sondeo);
   estado.sondeo = window.setInterval(() => {
     if (!document.hidden) actualizarRanking($("#final-ranking"));

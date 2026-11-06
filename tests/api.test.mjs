@@ -37,7 +37,7 @@ const rosco = (extra = {}) => ({
 async function creador() {
   const api = cliente();
   const alias = unico();
-  const { estado, datos } = await api("/registro", { metodo: "POST", cuerpo: { alias, clave: "contraseña-segura" } });
+  const { estado, datos } = await api("/registro", { metodo: "POST", cuerpo: { alias, clave: "contraseña-segura", rol: "docente" } });
   assert.equal(estado, 201);
   return { api, alias, codigoRecuperacion: datos.codigoRecuperacion };
 }
@@ -94,8 +94,8 @@ test("registro, sesión, salida e ingreso", async () => {
 test("no permite usuarios repetidos ni contraseñas cortas", async () => {
   const { alias } = await creador();
   const api = cliente();
-  assert.equal((await api("/registro", { metodo: "POST", cuerpo: { alias: alias.toUpperCase(), clave: "otra-clave-larga" } })).estado, 409);
-  assert.equal((await api("/registro", { metodo: "POST", cuerpo: { alias: unico(), clave: "corta" } })).estado, 400);
+  assert.equal((await api("/registro", { metodo: "POST", cuerpo: { alias: alias.toUpperCase(), clave: "otra-clave-larga", rol: "docente" } })).estado, 409);
+  assert.equal((await api("/registro", { metodo: "POST", cuerpo: { alias: unico(), clave: "corta", rol: "docente" } })).estado, 400);
 });
 
 test("el código de recuperación cambia la contraseña y se usa una sola vez", async () => {

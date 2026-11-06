@@ -21,41 +21,6 @@
   </header>
 
   <main class="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-    <!-- Ingreso, registro y recuperación -->
-    <section id="vista-acceso" class="glass mx-auto hidden max-w-md rounded-3xl p-5 sm:p-7">
-      <h1 id="acceso-titulo" class="display-font text-2xl font-black">Entrá a tu cuenta</h1>
-      <p id="acceso-ayuda" class="mt-2 text-sm text-slate-300">Para crear y compartir tus roscos.</p>
-      <form id="acceso-form" class="mt-5 space-y-4">
-        <label class="block text-sm font-bold text-slate-300">Usuario
-          <input id="acceso-alias" class="form-field mt-1 block min-h-11 w-full px-3" autocomplete="username" required maxlength="20">
-        </label>
-        <label id="acceso-codigo-campo" class="hidden text-sm font-bold text-slate-300">Código de recuperación
-          <input id="acceso-codigo" class="form-field mt-1 block min-h-11 w-full px-3 uppercase" autocomplete="off" maxlength="14">
-        </label>
-        <label class="block text-sm font-bold text-slate-300"><span id="acceso-clave-etiqueta">Contraseña</span>
-          <input id="acceso-clave" type="password" class="form-field mt-1 block min-h-11 w-full px-3" autocomplete="current-password" required maxlength="128">
-        </label>
-        <p id="acceso-error" class="hidden text-sm font-bold text-rose-300" role="alert"></p>
-        <button id="acceso-enviar" class="primary-btn w-full px-4 text-sm">Entrar</button>
-      </form>
-      <div class="mt-4 flex flex-wrap justify-between gap-2 text-sm">
-        <button id="ir-registro" class="font-bold text-cyan-200 underline underline-offset-4">Crear una cuenta</button>
-        <button id="ir-ingreso" class="hidden font-bold text-cyan-200 underline underline-offset-4">Ya tengo cuenta</button>
-        <button id="ir-recuperar" class="font-bold text-slate-300 underline underline-offset-4">Olvidé mi contraseña</button>
-      </div>
-      <p id="acceso-privacidad" class="mt-4 hidden text-xs leading-relaxed text-slate-400">No pedimos email ni datos personales. Elegí un usuario que no sea tu nombre real.</p>
-    </section>
-
-    <!-- Código de recuperación, se muestra una sola vez -->
-    <section id="vista-recuperacion" class="glass mx-auto hidden max-w-md rounded-3xl p-5 sm:p-7">
-      <h1 class="display-font text-2xl font-black">Guardá este código</h1>
-      <p class="mt-2 text-sm leading-relaxed text-slate-300">Es la única forma de recuperar tu cuenta si olvidás la contraseña. No lo vamos a volver a mostrar.</p>
-      <p id="codigo-recuperacion" class="display-font mt-4 select-all rounded-xl bg-amber-300/10 p-4 text-center text-lg font-black tracking-wider text-amber-200"></p>
-      <button id="copiar-recuperacion" class="secondary-btn mt-3 w-full px-4 text-sm"><i class="fa-solid fa-copy mr-2" aria-hidden="true"></i>Copiar</button>
-      <label class="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-300"><input id="recuperacion-guardado" type="checkbox"> Ya lo guardé en un lugar seguro</label>
-      <button id="recuperacion-seguir" class="primary-btn mt-4 w-full px-4 text-sm" disabled>Continuar</button>
-    </section>
-
     <!-- Lista -->
     <section id="vista-lista" class="hidden">
       <div class="flex flex-wrap items-center justify-between gap-3">

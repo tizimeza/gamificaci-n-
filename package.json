@@ -7,7 +7,7 @@
     "css": "node scripts/copy-assets.mjs && tailwindcss -i src/app.css -o public/assets/app.css --minify",
     "db": "wrangler d1 migrations apply roscolab --local",
     "dev": "npm run css && npm run db && wrangler dev",
-    "test": "node --test tests/api.test.mjs",
+    "test": "node --test tests/api.test.mjs tests/salas.test.mjs",
     "deploy:check": "npm run css && wrangler deploy --dry-run"
   },
   "devDependencies": {

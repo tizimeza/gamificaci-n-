@@ -21,7 +21,7 @@ async function abrir(id){
  const teacher=usuario.rol==='docente';$('#invite-panel').hidden=!teacher;$('#teacher-tools').hidden=!teacher;$('#new-activity').hidden=!teacher;$('#new-activity').href=`panel.html?clase=${id}&nuevo=1&materia=${encodeURIComponent(data.materia)}`;
  $('#activities').replaceChildren();
  if(!data.actividades.length)$('#activities').append(vacio('Todavía no hay desafíos.',teacher?'Creá un rosco o asigná uno que ya tengas en tu biblioteca.':'Cuando tu profe asigne un rosco, lo vas a encontrar acá.'));
- for(const actividad of data.actividades){const box=el('article','activity-item'),text=el('div');text.append(el('h3','',actividad.titulo),el('p','',`${actividad.materia} · ${actividad.segundos} segundos de tiempo total`));const link=el('a','primary',teacher?'Probar desafío ↗':'Jugar desafío ↗');link.href=`jugar.html?c=${actividad.codigo}`;box.append(text,link);$('#activities').append(box);}
+ for(const actividad of data.actividades){const box=el('article','activity-item'),text=el('div');text.append(el('h3','',actividad.titulo),el('p','',`${actividad.materia} · ${actividad.segundos} segundos de tiempo total`));const link=el('a',teacher?'secondary':'primary',teacher?'Probar desafío ↗':'Jugar desafío ↗');link.href=`jugar.html?c=${actividad.codigo}`;box.append(text,link);if(teacher){const vivo=el('a','primary','Sala en vivo ↗');vivo.href=`sala.html?rosco=${actividad.id}`;box.append(vivo);}$('#activities').append(box);}
  if(teacher){$('#invite-code').textContent=data.codigo;$('#members').replaceChildren(...(data.alumnos.length?data.alumnos.map(a=>el('li','',a.alias)):[el('li','','El curso todavía no se unió.')]));
   const {roscos}=await api('/roscos');$('#assign-rosco').replaceChildren(new Option('Elegí un rosco',''));const asignados=new Set(data.actividades.map(a=>a.id));roscos.filter(r=>!asignados.has(r.id)).forEach(r=>$('#assign-rosco').append(new Option(r.titulo,r.id)));$('#assign-button').disabled=$('#assign-rosco').options.length===1;
  }
@@ -29,7 +29,7 @@ async function abrir(id){
 }
 async function iniciar(){
  try{usuario=await api('/sesion');if(!usuario.alias){location.replace(`acceso.html?modo=ingreso${params.get('codigo')?'&rol=alumno&clase='+encodeURIComponent(params.get('codigo')):''}`);return;}
- $('#session-alias').textContent=`${usuario.alias} · ${usuario.rol==='docente'?'Profe':'Alumno'}`;const teacher=usuario.rol==='docente';$('#teacher-create').hidden=!teacher;$('#student-join').hidden=teacher;$('#library-link').hidden=!teacher;$('#dashboard-help').textContent=teacher?'Cada clase reúne a un curso. Creá desafíos y elegí con qué grupo compartirlos.':'Acá están tus clases y los desafíos que comparten tus profes.';
+ $('#session-alias').textContent=`${usuario.alias} · ${usuario.rol==='docente'?'Profe':'Alumno'}`;const teacher=usuario.rol==='docente';$('#teacher-create').hidden=!teacher;$('#student-join').hidden=teacher;$('#dashboard-help').textContent=teacher?'Cada clase reúne a un curso. Creá desafíos y elegí con qué grupo compartirlos.':'Acá están tus clases y los desafíos que comparten tus profes.';
  MATERIAS.forEach(m=>$('#class-subject').append(new Option(m,m)));if(MATERIAS.includes(params.get('materia')))$('#class-subject').value=params.get('materia');$('#class-code').value=/^[A-Z0-9]{6}$/i.test(params.get('codigo')||'')?params.get('codigo').toUpperCase():'';
  if(/^[0-9a-f-]{36}$/.test(params.get('id')||''))await abrir(params.get('id'));else await lista();
  }catch(error){errorGlobal(error);}

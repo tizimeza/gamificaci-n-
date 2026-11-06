@@ -2,6 +2,7 @@ import { modoDeLetra, respuestaCorrecta, revisarRosco } from "../public/assets/j
 import { seudonimoValido } from "../public/assets/js/seudonimos.js";
 import { SECRETO_FALSO, codigoAleatorio, hashearSecreto, sha256, tokenAleatorio, verificarSecreto } from "./seguridad.js";
 import { manejarClases } from "./clases.js";
+import { manejarSalas, salaEnCurso } from "./salas.js";
 
 const DIA = 86400;
 const DURACION_SESION = 30 * DIA;
@@ -90,8 +91,8 @@ function revisarCredenciales(alias, clave) {
 }
 
 async function registrar(request, env) {
-  await limitar(env, `registro:${ipDe(request)}`, 60, 3600);
-  const { alias, clave, rol = 'docente' } = await leerCuerpo(request);
+  await limitar(env, `registro:${ipDe(request)}`, 300, 3600); // Alto: toda una escuela suele salir por una sola IP.
+  const { alias, clave, rol } = await leerCuerpo(request);
   if (!['docente', 'alumno'].includes(rol)) throw new ErrorApi(400, 'Elegí un perfil de profe o alumno.');
   revisarCredenciales(alias, clave);
   const existente = await env.DB.prepare("SELECT 1 FROM usuarios WHERE alias = ?").bind(alias).first();
@@ -229,7 +230,7 @@ async function empezarIntento(request, codigo, env) {
 
   // Si recargó la página, retoma la partida en vez de regalarle un reloj nuevo.
   let fila = await env.DB.prepare(
-    "SELECT * FROM intentos WHERE rosco_id = ? AND jugador = ? AND fin IS NULL AND limite > ? ORDER BY inicio DESC LIMIT 1"
+    "SELECT * FROM intentos WHERE rosco_id = ? AND jugador = ? AND sala_id IS NULL AND fin IS NULL AND limite > ? ORDER BY inicio DESC LIMIT 1"
   ).bind(rosco.id, jugador, ahora).first();
 
   if (!fila) {
@@ -239,11 +240,15 @@ async function empezarIntento(request, codigo, env) {
     await env.DB.prepare("INSERT INTO intentos (id, rosco_id, jugador, seudonimo, entradas, inicio, limite) VALUES (?, ?, ?, ?, ?, ?, ?)")
       .bind(fila.id, rosco.id, jugador, seudonimo, fila.entradas, fila.inicio, fila.limite).run();
   }
-  const intento = parseIntento(fila);
+  return payloadPartida(env, parseIntento(fila));
+}
+
+async function payloadPartida(env, intento) {
   return json({
     token: intento.id,
     seudonimo: intento.seudonimo,
-    restanteMs: intento.limite - ahora,
+    restanteMs: intento.limite - Date.now(),
+    terminada: Boolean(intento.fin),
     respuestas: await estadoDeIntento(env, intento),
     items: intento.entradas.map((entrada, pos) => ({
       pos, letra: entrada.letra, modo: modoDeLetra(entrada.letra, entrada.palabra), definicion: entrada.definicion
@@ -263,12 +268,14 @@ async function cerrarIntento(env, intento) {
   await env.DB.prepare("UPDATE intentos SET fin = ? WHERE id = ? AND fin IS NULL").bind(fin, intento.id).run();
   const respuestas = await estadoDeIntento(env, intento);
   const actual = await env.DB.prepare("SELECT aciertos, errores, inicio, fin FROM intentos WHERE id = ?").bind(intento.id).first();
+  const salaAbierta = await salaEnCurso(env, intento.sala_id);
   return {
+    salaAbierta,
     aciertos: actual.aciertos,
     errores: actual.errores,
     total: intento.entradas.length,
     duracionMs: actual.fin - actual.inicio,
-    correcciones: intento.entradas.map((entrada, pos) => ({
+    correcciones: salaAbierta ? [] : intento.entradas.map((entrada, pos) => ({
       letra: entrada.letra, palabra: entrada.palabra, definicion: entrada.definicion, estado: respuestas[pos] ?? "sin-responder"
     }))
   };
@@ -278,6 +285,7 @@ async function responder(request, token, env) {
   const { pos, respuesta } = await leerCuerpo(request);
   const intento = await buscarIntento(token, env);
   if (intento.fin) throw new ErrorApi(409, "Esta partida ya terminó.");
+  if (Date.now() < intento.inicio) throw new ErrorApi(409, "La sala todavía no empezó.");
   if (Date.now() > intento.limite + GRACIA_MS) return json({ terminado: true, resultado: await cerrarIntento(env, intento) });
   const entrada = intento.entradas[pos];
   if (!Number.isInteger(pos) || !entrada) throw new ErrorApi(400, "Letra no válida.");
@@ -352,6 +360,13 @@ async function rutearApi(request, env, url) {
   if (ruta === '/clases' || ruta.startsWith('/clases/')) {
     const usuario = await exigirUsuario(request, env);
     return manejarClases({request,env,usuario,ruta,metodo,ErrorApi,leerCuerpo,limitar,json});
+  }
+
+  if (ruta === "/salas" || ruta.startsWith("/salas/") || ruta.startsWith("/sala/")) {
+    return manejarSalas({
+      request, env, ruta, metodo, ErrorApi, leerCuerpo, limitar, json, ipDe, exigirUsuario, parseIntento,
+      payloadPartida: (intento) => payloadPartida(env, intento)
+    });
   }
 
   if (ruta === "/roscos") {

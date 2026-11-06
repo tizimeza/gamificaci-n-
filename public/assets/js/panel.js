@@ -3,8 +3,8 @@ import { PLANTILLAS } from "./plantillas.js";
 import { LETRAS, LIMITES, MATERIAS, revisarRosco } from "./reglas.js";
 
 const $ = (selector) => document.querySelector(selector);
-const VISTAS = ["acceso", "recuperacion", "lista", "editor"];
-const estado = { modoAcceso: "ingreso", editandoId: null, rankingDe: null };
+const VISTAS = ["lista", "editor"];
+const estado = { editandoId: null, rankingDe: null };
 const contextoClase = new URLSearchParams(location.search);
 const claseId = /^[0-9a-f-]{36}$/.test(contextoClase.get('clase') || '') ? contextoClase.get('clase') : null;
 if (claseId) $("#volver-clases").href = `clases.html?id=${claseId}`;
@@ -47,57 +47,6 @@ async function copiar(texto, mensaje) {
   }
 }
 
-// --- Acceso
-
-function cambiarModoAcceso(modo) {
-  estado.modoAcceso = modo;
-  const registro = modo === "registro";
-  const recuperar = modo === "recuperar";
-  $("#acceso-titulo").textContent = { ingreso: "Entrá a tu cuenta", registro: "Creá tu cuenta", recuperar: "Recuperá tu cuenta" }[modo];
-  $("#acceso-ayuda").textContent = recuperar ? "Usá el código que guardaste al registrarte." : "Para crear y compartir tus roscos.";
-  $("#acceso-enviar").textContent = { ingreso: "Entrar", registro: "Crear cuenta", recuperar: "Cambiar contraseña" }[modo];
-  $("#acceso-clave-etiqueta").textContent = recuperar ? "Nueva contraseña" : "Contraseña";
-  $("#acceso-clave").autocomplete = modo === "ingreso" ? "current-password" : "new-password";
-  $("#acceso-codigo-campo").classList.toggle("hidden", !recuperar);
-  $("#acceso-codigo-campo").classList.toggle("block", recuperar);
-  $("#acceso-codigo").required = recuperar;
-  $("#acceso-privacidad").classList.toggle("hidden", !registro);
-  $("#ir-registro").classList.toggle("hidden", modo !== "ingreso");
-  $("#ir-recuperar").classList.toggle("hidden", modo !== "ingreso");
-  $("#ir-ingreso").classList.toggle("hidden", modo === "ingreso");
-  $("#acceso-error").classList.add("hidden");
-}
-
-async function enviarAcceso(evento) {
-  evento.preventDefault();
-  const alias = $("#acceso-alias").value.trim();
-  const clave = $("#acceso-clave").value;
-  const boton = $("#acceso-enviar");
-  boton.disabled = true;
-  $("#acceso-error").classList.add("hidden");
-  try {
-    const modo = estado.modoAcceso;
-    const ruta = { ingreso: "/ingreso", registro: "/registro", recuperar: "/recuperar" }[modo];
-    const cuerpo = { alias, clave, ...(modo === "recuperar" ? { codigoRecuperacion: $("#acceso-codigo").value } : {}) };
-    const datos = await api(ruta, { metodo: "POST", cuerpo });
-    $("#acceso-form").reset();
-    marcarSesion(datos.alias);
-    if (datos.codigoRecuperacion) {
-      $("#codigo-recuperacion").textContent = datos.codigoRecuperacion;
-      $("#recuperacion-guardado").checked = false;
-      $("#recuperacion-seguir").disabled = true;
-      mostrar("recuperacion");
-    } else {
-      await abrirLista();
-    }
-  } catch (error) {
-    $("#acceso-error").textContent = error.message;
-    $("#acceso-error").classList.remove("hidden");
-  } finally {
-    boton.disabled = false;
-  }
-}
-
 // --- Lista
 
 async function abrirLista() {
@@ -110,10 +59,9 @@ async function abrirLista() {
   }
 }
 
+// El ingreso y el registro viven solo en acceso.html.
 function irAIngreso() {
-  marcarSesion(null);
-  cambiarModoAcceso("ingreso");
-  mostrar("acceso");
+  location.replace("acceso.html?modo=ingreso&siguiente=panel");
 }
 
 function botonAccion(texto, nombreIcono, alHacerClick, clase = "secondary-btn") {
@@ -138,7 +86,8 @@ function dibujarLista(roscos) {
       `${rosco.letras} letras · ${rosco.segundos} segundos · ${rosco.jugadores} ${rosco.jugadores === 1 ? "jugador" : "jugadores"}`);
     const acciones = el("div", "mt-4 flex flex-wrap gap-2");
     acciones.append(
-      botonAccion("Compartir", "fa-share-nodes", () => abrirCompartir(rosco.codigo), "primary-btn"),
+      botonAccion("Sala en vivo", "fa-tower-broadcast", () => location.assign(`sala.html?rosco=${rosco.id}`), "primary-btn"),
+      botonAccion("Compartir", "fa-share-nodes", () => abrirCompartir(rosco.codigo)),
       botonAccion("Ranking", "fa-trophy", () => abrirRanking(rosco)),
       botonAccion("Editar", "fa-pen", () => abrirEditor(rosco.id)),
       botonAccion("Borrar", "fa-trash", () => borrarRosco(rosco), "danger-btn")
@@ -312,19 +261,9 @@ async function guardar(evento) {
 
 // --- Eventos
 
-$("#acceso-form").addEventListener("submit", enviarAcceso);
-$("#ir-registro").addEventListener("click", () => cambiarModoAcceso("registro"));
-$("#ir-ingreso").addEventListener("click", () => cambiarModoAcceso("ingreso"));
-$("#ir-recuperar").addEventListener("click", () => cambiarModoAcceso("recuperar"));
-$("#copiar-recuperacion").addEventListener("click", () => copiar($("#codigo-recuperacion").textContent, "Código copiado."));
-$("#recuperacion-guardado").addEventListener("change", (evento) => { $("#recuperacion-seguir").disabled = !evento.target.checked; });
-$("#recuperacion-seguir").addEventListener("click", () => {
-  $("#codigo-recuperacion").textContent = "";
-  abrirLista();
-});
 $("#salir").addEventListener("click", async () => {
   await api("/salir", { metodo: "POST", cuerpo: {} }).catch(() => {});
-  irAIngreso();
+  location.assign("/");
 });
 $("#nuevo").addEventListener("click", () => abrirEditor());
 $("#editor-volver").addEventListener("click", abrirLista);

@@ -8,5 +8,7 @@
   Cache-Control: no-store
 /panel*
   Content-Security-Policy: default-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'
+/sala*
+  Content-Security-Policy: default-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'
 /jugar*
   Content-Security-Policy: default-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'

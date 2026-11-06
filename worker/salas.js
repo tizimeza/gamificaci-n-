@@ -1,5 +1,6 @@
 import { seudonimoValido } from "../public/assets/js/seudonimos.js";
 import { codigoAleatorio, tokenAleatorio } from "./seguridad.js";
+import { presentacionMateria } from './materias.js';
 
 const CUENTA_REGRESIVA_MS = 5000;
 const MAX_JUGADORES = 200;
@@ -72,7 +73,7 @@ export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerC
     return sala;
   };
 
-  const vistaAnfitrion = async (sala) => json({ id: sala.id, roscoId: sala.rosco_id, ...resumenSala(sala), jugadores: await tablaDeSala(env, sala) });
+  const vistaAnfitrion = async (sala) => json({ id: sala.id, roscoId: sala.rosco_id, ...resumenSala(sala), presentacion: await presentacionMateria(env, sala.materia), jugadores: await tablaDeSala(env, sala) });
 
   // --- Quien abre la sala
 
@@ -149,6 +150,7 @@ export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerC
     const tabla = await tablaDeSala(env, sala, jugador);
     return json({
       ...resumenSala(sala),
+      presentacion: await presentacionMateria(env, sala.materia),
       seudonimo: yo?.seudonimo ?? null,
       jugadores: tabla.length,
       tabla: tabla.filter((fila, indice) => indice < TOP_PUBLICO || fila.soyYo)

@@ -1,10 +1,13 @@
 import { api, aviso, dibujarRanking, el, icono } from "./api.js";
 import { PLANTILLAS } from "./plantillas.js";
-import { LETRAS, LIMITES, MATERIAS, revisarRosco } from "./reglas.js";
+import { LETRAS, LIMITES, revisarRosco, normalizar } from "./reglas.js";
+import { cargarMaterias, crearPersonaje } from './materias.js';
+let MATERIAS = [];
+let catalogoMaterias = [];
 
 const $ = (selector) => document.querySelector(selector);
 const VISTAS = ["lista", "editor"];
-const estado = { editandoId: null, rankingDe: null };
+const estado = { editandoId: null, rankingDe: null, roscos: [], rol: null, asignando: null, origen: null };
 const contextoClase = new URLSearchParams(location.search);
 const claseId = /^[0-9a-f-]{36}$/.test(contextoClase.get('clase') || '') ? contextoClase.get('clase') : null;
 if (claseId) $("#volver-clases").href = `clases.html?id=${claseId}`;
@@ -52,7 +55,8 @@ async function copiar(texto, mensaje) {
 async function abrirLista() {
   mostrar("lista");
   try {
-    dibujarLista((await api("/roscos")).roscos);
+    estado.roscos = (await api("/roscos")).roscos;
+    filtrarBiblioteca();
   } catch (error) {
     if (error.estado === 401) return irAIngreso();
     aviso(error.message, "mal");
@@ -75,26 +79,76 @@ function botonAccion(texto, nombreIcono, alHacerClick, clase = "secondary-btn") 
 function dibujarLista(roscos) {
   const lista = $("#lista");
   lista.replaceChildren();
-  $("#lista-vacia").classList.toggle("hidden", roscos.length > 0);
+  const total = estado.roscos.length;
+  $("#lista-vacia").classList.toggle("hidden", total > 0);
+  $('#biblioteca-filtros').classList.toggle('hidden', total === 0);
+  $('#biblioteca-sin-resultados').classList.toggle('hidden', total === 0 || roscos.length > 0);
+  $('#biblioteca-contador').textContent = total ? `${roscos.length} de ${total} ${total === 1 ? 'rosco guardado' : 'roscos guardados'}` : '';
   roscos.forEach((rosco) => {
-    const tarjeta = el("article", "glass rounded-3xl p-5");
-    const cabecera = el("div", "flex items-start justify-between gap-3");
+    const tarjeta = el("article", "glass library-card rounded-3xl p-5");
+    tarjeta.dataset.roscoId = rosco.id;
+    const cabecera = el("div", "library-card-heading");
+    const avatar = crearPersonaje(catalogoMaterias.find(m => m.nombre === rosco.materia), 'library-avatar');
+    avatar.querySelector('img').loading = 'lazy';
     const textos = el("div", "min-w-0");
     textos.append(el("p", "eyebrow", rosco.materia), el("h2", "display-font mt-1 break-words text-lg font-extrabold", rosco.titulo));
-    cabecera.append(textos, el("span", "display-font rounded-lg bg-amber-300/10 px-2 py-1 font-black tracking-wider text-amber-200", rosco.codigo));
+    textos.append(el('span', 'library-code', `Código: ${rosco.codigo}`));
+    cabecera.append(avatar, textos);
     const detalle = el("p", "mt-2 text-sm text-slate-300",
       `${rosco.letras} letras · ${rosco.segundos} segundos · ${rosco.jugadores} ${rosco.jugadores === 1 ? "jugador" : "jugadores"}`);
-    const acciones = el("div", "mt-4 flex flex-wrap gap-2");
-    acciones.append(
-      botonAccion("Sala en vivo", "fa-tower-broadcast", () => location.assign(`sala.html?rosco=${rosco.id}`), "primary-btn"),
+    const acciones = el('div', 'library-main-actions');
+    const jugar = el('a', 'primary-btn', 'Jugar'); jugar.href = `jugar.html?c=${rosco.codigo}`;
+    const plantilla = botonAccion('Usar como plantilla', 'fa-copy', () => crearDesdeRosco(rosco.id), 'secondary-btn library-reuse');
+    plantilla.disabled = !MATERIAS.length;
+    acciones.append(jugar, plantilla);
+    const secundarias = el('div', 'library-sub-actions');
+    secundarias.append(botonAccion('Sala en vivo', 'fa-tower-broadcast', () => location.assign(`sala.html?rosco=${rosco.id}`)));
+    if (estado.rol === 'docente') secundarias.append(botonAccion('Usar en una clase', 'fa-chalkboard-user', () => abrirAsignar(rosco)));
+    const mas = el('details', 'library-more'); mas.append(el('summary', '', 'Más acciones'));
+    const menu = el('div');
+    menu.append(
       botonAccion("Compartir", "fa-share-nodes", () => abrirCompartir(rosco.codigo)),
       botonAccion("Ranking", "fa-trophy", () => abrirRanking(rosco)),
       botonAccion("Editar", "fa-pen", () => abrirEditor(rosco.id)),
       botonAccion("Borrar", "fa-trash", () => borrarRosco(rosco), "danger-btn")
     );
-    tarjeta.append(cabecera, detalle, acciones);
+    mas.append(menu); secundarias.append(mas);
+    const actualizado = Number(rosco.actualizado);
+    const fecha = Number.isFinite(actualizado) && actualizado > 0 ? el('p', 'library-date', `Último cambio: ${new Intl.DateTimeFormat('es-AR', {day:'numeric',month:'short',year:'numeric'}).format(actualizado)}`) : null;
+    tarjeta.append(cabecera, detalle, acciones, secundarias);
+    if (fecha) tarjeta.append(fecha);
     lista.append(tarjeta);
   });
+}
+
+function filtrarBiblioteca() {
+  const consulta = normalizar($('#biblioteca-buscar').value), materia = $('#biblioteca-materia').value;
+  const roscos = estado.roscos.filter(r => (!materia || r.materia === materia) && (!consulta || normalizar(`${r.titulo} ${r.materia}`).includes(consulta)));
+  const orden = $('#biblioteca-orden').value;
+  roscos.sort(orden === 'titulo' ? (a,b) => a.titulo.localeCompare(b.titulo, 'es', {sensitivity:'base'}) : orden === 'letras' ? (a,b) => b.letras-a.letras || b.actualizado-a.actualizado : (a,b) => b.actualizado-a.actualizado);
+  dibujarLista(roscos);
+}
+
+async function crearDesdeRosco(id) {
+  try { await abrirEditor(null, await api(`/roscos/${id}`)); }
+  catch (error) { aviso(error.message, 'mal'); }
+}
+
+async function abrirAsignar(rosco) {
+  estado.asignando = rosco;
+  $('#asignar-descripcion').textContent = `«${rosco.titulo}» conserva su código y sus preguntas. También puede estar en otras clases.`;
+  $('#asignar-error').textContent = '';
+  $('#asignar-clase').replaceChildren(new Option('Cargando clases…', ''));
+  $('#asignar-guardar').disabled = true;
+  $('#asignar-sin-clases').classList.add('hidden');
+  $('#dialogo-asignar').showModal();
+  try {
+    const {clases} = await api('/clases');
+    $('#asignar-clase').replaceChildren(new Option('Elegí una clase', ''));
+    clases.forEach(clase => $('#asignar-clase').append(new Option(`${clase.nombre} · ${clase.materia}`, clase.id)));
+    $('#asignar-sin-clases').classList.toggle('hidden', clases.length > 0);
+    $('#asignar-guardar').disabled = clases.length === 0;
+  } catch (error) { $('#asignar-error').textContent = error.message; }
 }
 
 function abrirCompartir(codigo) {
@@ -184,10 +238,14 @@ function cargarEditor({ titulo = "", materia = MATERIAS[0], segundos = LIMITES.s
   actualizarContador();
 }
 
-async function abrirEditor(id = null) {
+async function abrirEditor(id = null, base = null) {
   estado.editandoId = id;
-  $("#editor-titulo").textContent = id ? "Editar rosco" : "Nuevo rosco";
-  $("#plantilla-campo").classList.toggle("hidden", Boolean(id));
+  estado.origen = !id && base ? base.titulo : null;
+  $("#editor-titulo").textContent = id ? "Editar rosco" : base ? 'Crear desde plantilla' : "Nuevo rosco";
+  $('#guardar').textContent = id ? 'Guardar cambios' : base ? 'Guardar como nuevo rosco' : 'Guardar rosco';
+  $('#editor-origen').classList.toggle('hidden', !base);
+  $('#editor-origen').textContent = base ? `Partís de «${base.titulo}». Podés cambiar las preguntas, la materia y el tiempo. Al guardar se crea un rosco independiente con código y ranking propios; el original se conserva.` : '';
+  $("#plantilla-campo").classList.toggle("hidden", Boolean(id || base));
   $("#campo-plantilla").value = "";
   if (id) {
     try {
@@ -196,11 +254,14 @@ async function abrirEditor(id = null) {
       aviso(error.message, "mal");
       return;
     }
+  } else if (base) {
+    cargarEditor({...base, titulo: `Copia de ${base.titulo}`.slice(0, LIMITES.titulo)});
   } else {
     cargarEditor({});
     for (let i = 0; i < LIMITES.entradasMin; i += 1) agregarFila();
   }
   mostrar("editor");
+  $('#campo-titulo').focus();
 }
 
 function leerEditor() {
@@ -231,7 +292,7 @@ function mostrarErrores(errores) {
 async function guardar(evento) {
   evento.preventDefault();
   const datos = leerEditor();
-  const { errores, rosco } = revisarRosco(datos);
+  const { errores, rosco } = revisarRosco(datos, MATERIAS);
   if (errores.length) return mostrarErrores(errores);
   const boton = $("#guardar");
   boton.disabled = true;
@@ -241,6 +302,11 @@ async function guardar(evento) {
       ? await api("/roscos", { metodo: "POST", cuerpo: rosco })
       : await api(`/roscos/${estado.editandoId}`, { metodo: "PUT", cuerpo: rosco });
     aviso("Rosco guardado.", "ok");
+    if (nuevo) {
+      $('#biblioteca-buscar').value = '';
+      $('#biblioteca-materia').value = '';
+      $('#biblioteca-orden').value = 'recientes';
+    }
     if (nuevo && claseId) {
       try {
         await api(`/clases/${claseId}/roscos`, { metodo: 'POST', cuerpo: { roscoId: respuesta.id } });
@@ -269,6 +335,21 @@ $("#nuevo").addEventListener("click", () => abrirEditor());
 $("#editor-volver").addEventListener("click", abrirLista);
 $("#editor").addEventListener("submit", guardar);
 $("#agregar").addEventListener("click", () => agregarFila());
+$('#biblioteca-buscar').addEventListener('input', filtrarBiblioteca);
+$('#biblioteca-materia').addEventListener('change', filtrarBiblioteca);
+$('#biblioteca-orden').addEventListener('change', filtrarBiblioteca);
+$('#biblioteca-limpiar').addEventListener('click', () => { $('#biblioteca-buscar').value = ''; $('#biblioteca-materia').value = ''; filtrarBiblioteca(); $('#biblioteca-buscar').focus(); });
+$('#asignar-cerrar').addEventListener('click', () => $('#dialogo-asignar').close());
+$('#asignar-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!estado.asignando) return;
+  $('#asignar-error').textContent = ''; $('#asignar-guardar').disabled = true;
+  try {
+    await api(`/clases/${$('#asignar-clase').value}/roscos`, {metodo:'POST', cuerpo:{roscoId:estado.asignando.id}});
+    $('#dialogo-asignar').close(); aviso('Rosco asignado a la clase.', 'ok');
+  } catch (error) { $('#asignar-error').textContent = error.message; }
+  finally { $('#asignar-guardar').disabled = false; }
+});
 $("#campo-plantilla").addEventListener("change", (evento) => {
   const plantilla = PLANTILLAS[evento.target.value];
   if (plantilla) cargarEditor(plantilla);
@@ -289,15 +370,25 @@ $("#ranking-borrar").addEventListener("click", async () => {
   }
 });
 
+try {
+  catalogoMaterias = await cargarMaterias();
+  MATERIAS = catalogoMaterias.map(m => m.nombre);
+} catch (error) {
+  aviso(error.message, 'mal');
+  $('#nuevo').disabled = true;
+  $('#guardar').disabled = true;
+}
 MATERIAS.forEach((materia) => $("#campo-materia").append(new Option(materia, materia)));
+MATERIAS.forEach(materia => $('#biblioteca-materia').append(new Option(materia, materia)));
 $("#campo-plantilla").append(new Option("Sin plantilla", ""));
 PLANTILLAS.forEach((plantilla, indice) => $("#campo-plantilla").append(new Option(plantilla.nombre, String(indice))));
 
-const { alias } = await api("/sesion").catch(() => ({ alias: null }));
+const { alias, rol } = await api("/sesion").catch(() => ({ alias: null }));
+estado.rol = rol;
 if (alias) {
   marcarSesion(alias);
   await abrirLista();
-  if (contextoClase.get('nuevo') === '1') {
+  if (contextoClase.get('nuevo') === '1' && MATERIAS.length) {
     await abrirEditor();
     if (MATERIAS.includes(contextoClase.get('materia'))) $("#campo-materia").value = contextoClase.get('materia');
   }

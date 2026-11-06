@@ -1,4 +1,3 @@
-import { MATERIAS } from '../public/assets/js/reglas.js';
 import { codigoAleatorio } from './seguridad.js';
 
 // El rol y la pertenencia se comprueban en el servidor, no en la navegación.
@@ -19,7 +18,8 @@ export async function manejarClases({request,env,usuario,ruta,metodo,ErrorApi,le
   if(ruta==='/clases' && metodo==='POST') {
     docente();await limitar(env,`clase:${usuario.id}`,30,3600);
     const datos=await leerCuerpo(request),nombre=typeof datos.nombre==='string'?datos.nombre.trim():'';
-    if(nombre.length<3||nombre.length>80||!MATERIAS.includes(datos.materia))throw new ErrorApi(422,'Poné un nombre de 3 a 80 caracteres y elegí la materia.');
+    const materia = typeof datos.materia === 'string' && await env.DB.prepare('SELECT 1 FROM materias WHERE nombre=? AND visible=1').bind(datos.materia).first();
+    if(nombre.length<3||nombre.length>80||!materia)throw new ErrorApi(422,'Poné un nombre de 3 a 80 caracteres y elegí la materia.');
     const {cuenta}=await env.DB.prepare('SELECT COUNT(*) cuenta FROM clases WHERE docente_id=?').bind(usuario.id).first();
     if(cuenta>=100)throw new ErrorApi(409,'Llegaste al máximo de 100 clases.');
     const id=crypto.randomUUID();

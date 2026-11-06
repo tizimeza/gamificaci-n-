@@ -70,8 +70,14 @@ Este repositorio incluye Worker, assets y migraciones. La base local y sus usuar
 
 ## Diseño y alcance
 
+### Materias y personajes desde D1
+
+`0004_materias.sql` configura el catálogo de materias, personajes, imágenes, color y video de festejo opcional. El editor, las clases y la portada consultan `/api/materias`; el mismo jugador presenta todos los roscos, individuales o en vivo. Título, preguntas, respuestas, tiempo y resultados siguen en las tablas existentes. Ver `art/MOTOR-POR-MATERIAS.md` para agregar materias y conocer los límites actuales.
+
 - `art/PORTADA-Y-CLASES.md`: recorridos implementados, verificación y siguientes etapas.
 - `art/PILOTO-MATEMATICA.md`: piloto por equipos y sus límites.
 - `art/DIRECCION-CREATIVA.md`: dirección artística y pendientes.
 
 Pendientes de producto: sala sincronizada en vivo, desafíos con fecha de cierre, informes por alumno y unificación visual del jugador individual con el piloto. Las plantillas son ejemplos para revisión docente.
+
+`0005_personajes_biografias.sql` agrega personalidad, frase y acompañamiento editorial a cada materia. La portada los muestra al pasar, enfocar o tocar una tarjeta. La colección de tres power-ups se presenta como arte en diseño; todavía no tiene efectos en partidas. Ver `art/PERSONAJES-Y-POWERUPS.md`.

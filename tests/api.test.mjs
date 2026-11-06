@@ -44,6 +44,62 @@ async function creador() {
 
 const jugadorNuevo = () => crypto.randomUUID();
 
+test('biblioteca: crear desde un rosco mantiene original, ranking y clases independientes', async () => {
+  const {api}=await creador();
+  const original=(await api('/roscos',{metodo:'POST',cuerpo:rosco({titulo:'Original para reutilizar'})})).datos;
+  const jugador=cliente();
+  const partida=(await jugador(`/r/${original.codigo}/intentos`,{metodo:'POST',cuerpo:{jugador:jugadorNuevo(),seudonimo:'Puma Veloz 42'}})).datos;
+  await jugador(`/intentos/${partida.token}/responder`,{metodo:'POST',cuerpo:{pos:0,respuesta:'algoritmo'}});
+  await jugador(`/intentos/${partida.token}/terminar`,{metodo:'POST',cuerpo:{}});
+  const antes=(await api(`/roscos/${original.id}`)).datos;
+  const clase=(await api('/clases',{metodo:'POST',cuerpo:{nombre:'Curso de biblioteca',materia:'Tecnología'}})).datos;
+  await api(`/clases/${clase.id}/roscos`,{metodo:'POST',cuerpo:{roscoId:original.id}});
+  const copia=(await api('/roscos',{metodo:'POST',cuerpo:{titulo:'Versión para otro curso',materia:antes.materia,segundos:180,entradas:antes.entradas}})).datos;
+  assert.notEqual(copia.id,original.id);assert.notEqual(copia.codigo,original.codigo);
+  assert.equal((await jugador(`/r/${copia.codigo}/ranking`)).datos.ranking.length,0);
+  assert.equal((await jugador(`/r/${original.codigo}/ranking`)).datos.ranking.length,1);
+  const despues=(await api(`/roscos/${original.id}`)).datos;
+  assert.equal(despues.titulo,antes.titulo);assert.equal(despues.segundos,antes.segundos);assert.deepEqual(despues.entradas,antes.entradas);
+  assert.equal(despues.actualizado,antes.actualizado);
+  const detalle=(await api(`/clases/${clase.id}`)).datos;
+  assert.equal(detalle.actividades.length,1);assert.equal(detalle.actividades[0].id,original.id);
+  assert.equal((await api('/roscos')).datos.roscos.length,2);
+});
+
+test('catálogo de materias: un mismo jugador recibe presentación y contenido de cada rosco', async () => {
+  const publico=cliente();
+  const {estado,datos}=await publico('/materias');
+  assert.equal(estado,200);
+  const materias=datos.materias;
+  assert.equal(materias.length,11);
+  assert.equal(materias.find(m=>m.nombre==='Lengua').personaje_nombre,'LETI');
+  assert.equal(materias.find(m=>m.nombre==='Matemática').personaje_nombre,'PRISMO');
+  assert.equal(materias.find(m=>m.nombre==='Biología').personaje_nombre,'BROTI');
+  const profe=await creador();
+  for(const materia of materias) {
+    assert.ok(materia.personalidad.length > 20,`Personalidad de ${materia.nombre}`);
+    assert.ok(materia.ayuda.length > 30,`Ayuda de ${materia.nombre}`);
+    assert.ok(materia.frase.length > 10,`Frase de ${materia.nombre}`);
+    const creado=await profe.api('/roscos',{metodo:'POST',cuerpo:rosco({titulo:`Prueba de ${materia.nombre}`,materia:materia.nombre})});
+    assert.equal(creado.estado,201,materia.nombre);
+    const info=(await publico(`/r/${creado.datos.codigo}`)).datos;
+    assert.equal(info.materia,materia.nombre);
+    assert.equal(info.presentacion.personaje_id,materia.personaje_id);
+    assert.equal(info.presentacion.imagen,materia.imagen);
+    assert.equal(info.presentacion.festejo,null);
+    assert.equal(info.presentacion.ayuda,materia.ayuda);
+    assert.equal(info.entradas,undefined);
+    const clase=await profe.api('/clases',{metodo:'POST',cuerpo:{nombre:`Curso de ${materia.nombre}`,materia:materia.nombre}});
+    assert.equal(clase.estado,201,materia.nombre);
+    if(materia.nombre==='Biología') {
+      const sala=await profe.api('/salas',{metodo:'POST',cuerpo:{roscoId:creado.datos.id}});
+      assert.equal(sala.estado,201);
+      assert.equal((await publico(`/sala/${sala.datos.pin}`)).datos.presentacion.personaje_nombre,'BROTI');
+      assert.equal((await profe.api(`/salas/${sala.datos.id}`)).datos.presentacion.personaje_nombre,'BROTI');
+    }
+  }
+});
+
 test('perfiles, clases y permisos de inscripción y asignación', async () => {
   const profe=await creador(),otro=await creador(),alumno=cliente(),ajeno=cliente();
   assert.equal((await alumno('/registro',{metodo:'POST',cuerpo:{alias:unico(),clave:'clave-alumno-segura',rol:'alumno'}})).estado,201);

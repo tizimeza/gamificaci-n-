@@ -7,14 +7,16 @@
   <title>Mis roscos | RoscoLab</title>
   <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/personajes.css">
+  <link rel="stylesheet" href="/assets/biblioteca.css">
   <script type="module" src="/assets/js/panel.js"></script>
 </head>
 <body class="sitio">
   <header class="topbar">
-    <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <div class="mx-auto flex flex-wrap max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
       <div class="flex items-center gap-4"><a href="/" class="display-font text-lg font-black">RoscoLab</a><a id="volver-clases" href="clases.html" class="text-sm font-bold text-cyan-200 underline">Mis clases</a></div>
-      <div id="sesion" class="hidden items-center gap-3">
-        <span id="sesion-alias" class="text-sm font-bold text-slate-300"></span>
+      <div id="sesion" class="hidden min-w-0 items-center gap-3">
+        <span id="sesion-alias" class="truncate text-sm font-bold text-slate-300"></span>
         <button id="salir" class="secondary-btn px-3 text-sm">Salir</button>
       </div>
     </div>
@@ -24,9 +26,16 @@
     <!-- Lista -->
     <section id="vista-lista" class="hidden">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h1 class="display-font text-2xl font-black">Mis roscos</h1>
+        <div><p class="eyebrow">Tu biblioteca de desafíos</p><h1 class="display-font mt-1 text-2xl font-black">Mis roscos</h1><p class="library-intro">Volvé a jugarlos, usalos en otras clases o creá una versión nueva a partir de sus preguntas.</p></div>
         <button id="nuevo" class="primary-btn px-5 text-sm"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Nuevo rosco</button>
       </div>
+      <div id="biblioteca-filtros" class="library-filters">
+        <label>Buscar en mi biblioteca<input id="biblioteca-buscar" type="search" class="form-field" placeholder="Título o materia…" maxlength="100"></label>
+        <label>Materia<select id="biblioteca-materia" class="form-field"><option value="">Todas las materias</option></select></label>
+        <label>Ordenar por<select id="biblioteca-orden" class="form-field"><option value="recientes">Últimos cambios</option><option value="titulo">Título de A a Z</option><option value="letras">Cantidad de letras</option></select></label>
+      </div>
+      <p id="biblioteca-contador" class="library-counter" role="status" aria-live="polite"></p>
+      <div id="biblioteca-sin-resultados" class="library-no-results hidden"><h2>No encontramos ese rosco.</h2><p>Probá con otro título o cambiá el filtro de materia.</p><button id="biblioteca-limpiar" type="button" class="secondary-btn px-4 text-sm">Limpiar búsqueda</button></div>
       <div id="lista" class="mt-5 grid gap-4 md:grid-cols-2"></div>
       <div id="lista-vacia" class="glass mt-5 hidden rounded-3xl p-8 text-center">
         <p class="display-font text-lg font-extrabold">Todavía no creaste ningún rosco</p>
@@ -40,6 +49,7 @@
         <h1 id="editor-titulo" class="display-font text-2xl font-black">Nuevo rosco</h1>
         <button id="editor-volver" class="secondary-btn px-4 text-sm">Volver</button>
       </div>
+      <p id="editor-origen" class="library-copy-note hidden" role="status"></p>
       <form id="editor" class="mt-5 space-y-5" novalidate>
         <div class="glass grid gap-4 rounded-3xl p-5 md:grid-cols-[2fr_1fr_1fr]">
           <label class="block text-sm font-bold text-slate-300">Título
@@ -70,6 +80,19 @@
       </form>
     </section>
   </main>
+
+  <dialog id="dialogo-asignar" class="dialogo" aria-labelledby="asignar-titulo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 id="asignar-titulo" class="display-font text-xl font-black">Usar en una clase</h2>
+      <p id="asignar-descripcion" class="mt-2 text-sm text-slate-300"></p>
+      <form id="asignar-form" class="mt-5 space-y-4">
+        <label class="block text-sm font-bold">Elegí una clase<select id="asignar-clase" class="form-field mt-2 block min-h-11 w-full px-3" required></select></label>
+        <p id="asignar-error" class="text-sm text-rose-200" role="alert"></p>
+        <p id="asignar-sin-clases" class="hidden text-sm text-slate-300">Todavía no tenés clases. <a href="clases.html" class="text-cyan-200 underline">Creá tu primera clase</a> y volvé a asignar este rosco.</p>
+        <div class="flex justify-end gap-2"><button id="asignar-cerrar" type="button" class="secondary-btn px-4 text-sm">Cerrar</button><button id="asignar-guardar" type="submit" class="primary-btn px-4 text-sm">Asignar rosco</button></div>
+      </form>
+    </div>
+  </dialog>
 
   <dialog id="dialogo-compartir" class="dialogo">
     <div class="glass rounded-3xl p-5 sm:p-7">

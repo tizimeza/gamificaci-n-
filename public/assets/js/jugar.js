@@ -1,5 +1,6 @@
 import { api, aviso, dibujarRanking, el, formatoTiempo, icono } from "./api.js";
 import { generarSeudonimo } from "./seudonimos.js";
+import { presentacionSegura, crearPersonaje, reaccionPersonaje } from './materias.js';
 
 const $ = (selector) => document.querySelector(selector);
 const VISTAS = ["codigo", "inicio", "espera", "juego", "final"];
@@ -11,8 +12,16 @@ const codigo = new URLSearchParams(location.search).get("c")?.trim().toUpperCase
 const estado = {
   info: null, seudonimo: null, token: null, items: [], respuestas: {}, actual: null,
   finMs: 0, reloj: null, ocupado: false, sondeo: null,
-  sala: null, tokenSala: null, enCuenta: false, salaCerrada: false
+  sala: null, tokenSala: null, enCuenta: false, salaCerrada: false, presentacion: null
 };
+
+function aplicarMateria(info) {
+  estado.presentacion = presentacionSegura(info.presentacion);
+  document.body.dataset.materia = estado.presentacion.id;
+  document.body.style.setProperty('--materia-acento', estado.presentacion.color);
+  $('#materia-actual').textContent = info.materia;
+  document.querySelectorAll('[data-avatar-materia]').forEach(box => box.replaceChildren(crearPersonaje(estado.presentacion)));
+}
 
 function idJugador() {
   try {
@@ -107,6 +116,7 @@ async function abrirInicio() {
     return;
   }
   const { titulo, materia, letras, segundos } = estado.info;
+  aplicarMateria(estado.info);
   document.title = `${titulo} | RoscoLab`;
   $("#inicio-materia").textContent = materia;
   $("#inicio-titulo").textContent = titulo;
@@ -141,6 +151,7 @@ async function empezar() {
 
 function abrirSala(sala) {
   estado.sala = sala;
+  aplicarMateria(sala);
   document.title = `${sala.titulo} | RoscoLab`;
   if (sala.seudonimo) return entrarEnSala(sala);
   if (sala.estado === "terminada") {
@@ -316,6 +327,8 @@ function dibujarRosco() {
   const total = estado.items.length;
   rosco.style.setProperty("--nodo", total > 20 ? "30px" : "38px");
   const centro = el("div", "rosco-center");
+  centro.classList.add('rosco-con-personaje');
+  centro.append(crearPersonaje(estado.presentacion, 'subject-avatar-ring'));
   const item = estado.items.find(({ pos }) => pos === estado.actual);
   centro.append(el("span", "center-letter", item?.letra ?? ""));
   const nodos = estado.items.map(({ pos, letra }, indice) => {
@@ -348,6 +361,7 @@ async function responder(evento) {
     }
     if (datos.terminado) mostrarFinal(datos.resultado);
     else avanzar();
+    if (datos.correcta !== undefined) reaccionPersonaje(document.querySelector('main'), datos.correcta ? 'acierto' : 'error');
   } catch (error) {
     aviso(error.message, "mal");
     if (error.estado === 409) await terminar();

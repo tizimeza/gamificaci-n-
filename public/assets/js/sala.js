@@ -1,4 +1,5 @@
 import { api, aviso, dibujarRanking, el, formatoTiempo } from "./api.js";
+import { crearPersonaje } from './materias.js';
 
 const $ = (selector) => document.querySelector(selector);
 const VISTAS = ["espera", "cuenta", "juego", "final"];
@@ -74,6 +75,10 @@ function dibujarFinal(sala) {
 }
 
 function atender(sala) {
+  if (estado.sala?.materia !== sala.materia) {
+    $('#sala-personaje').replaceChildren(crearPersonaje(sala.presentacion));
+    if (/^#[0-9a-f]{6}$/i.test(sala.presentacion?.color || '')) document.body.style.setProperty('--materia-acento', sala.presentacion.color);
+  }
   estado.sala = sala;
   if (sala.estado === "espera") {
     dibujarEspera(sala);

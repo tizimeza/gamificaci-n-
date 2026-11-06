@@ -2,6 +2,7 @@ import { modoDeLetra, respuestaCorrecta, revisarRosco } from "../public/assets/j
 import { seudonimoValido } from "../public/assets/js/seudonimos.js";
 import { SECRETO_FALSO, codigoAleatorio, hashearSecreto, sha256, tokenAleatorio, verificarSecreto } from "./seguridad.js";
 import { manejarClases } from "./clases.js";
+import { listarMaterias, presentacionMateria } from './materias.js';
 import { manejarSalas, salaEnCurso } from "./salas.js";
 
 const DIA = 86400;
@@ -147,8 +148,9 @@ async function salir(request, env) {
   return json({ ok: true }, 200, { "set-cookie": cookieSesion(request, "", 0) });
 }
 
-function validarRosco(datos) {
-  const { errores, rosco } = revisarRosco(datos);
+async function validarRosco(datos, env) {
+  const materias = (await listarMaterias(env)).map(m => m.nombre);
+  const { errores, rosco } = revisarRosco(datos, materias);
   if (errores.length) throw new ErrorApi(422, errores[0].mensaje, { errores });
   return rosco;
 }
@@ -174,7 +176,7 @@ async function listarRoscos(usuario, env) {
 
 async function crearRosco(request, usuario, env) {
   await limitar(env, `crear:${usuario.id}`, 60, 3600);
-  const rosco = validarRosco(await leerCuerpo(request));
+  const rosco = await validarRosco(await leerCuerpo(request), env);
   const { cuenta } = await env.DB.prepare("SELECT COUNT(*) AS cuenta FROM roscos WHERE usuario_id = ?").bind(usuario.id).first();
   if (cuenta >= MAX_ROSCOS) throw new ErrorApi(409, `Llegaste al máximo de ${MAX_ROSCOS} roscos. Borrá alguno para crear otro.`);
   const id = crypto.randomUUID();
@@ -201,7 +203,7 @@ async function miRosco(id, usuario, env) {
 
 async function actualizarRosco(request, id, usuario, env) {
   await miRosco(id, usuario, env);
-  const rosco = validarRosco(await leerCuerpo(request));
+  const rosco = await validarRosco(await leerCuerpo(request), env);
   await env.DB.prepare("UPDATE roscos SET titulo = ?, materia = ?, segundos = ?, entradas = ?, actualizado = ? WHERE id = ? AND usuario_id = ?")
     .bind(rosco.titulo, rosco.materia, rosco.segundos, JSON.stringify(rosco.entradas), Date.now(), id, usuario.id).run();
   return json({ ok: true });
@@ -333,6 +335,7 @@ async function infoPublica(codigo, env) {
   const entradas = JSON.parse(rosco.entradas);
   return json({
     codigo: rosco.codigo, titulo: rosco.titulo, materia: rosco.materia, segundos: rosco.segundos,
+    presentacion: await presentacionMateria(env, rosco.materia),
     letras: entradas.map((entrada) => entrada.letra)
   });
 }
@@ -353,6 +356,7 @@ async function rutearApi(request, env, url) {
     return json({ alias: usuario?.alias ?? null, rol: usuario?.rol ?? null });
   }
   if (ruta === "/registro" && metodo === "POST") return registrar(request, env);
+  if (ruta === '/materias' && metodo === 'GET') return json({ materias: await listarMaterias(env) });
   if (ruta === "/ingreso" && metodo === "POST") return ingresar(request, env);
   if (ruta === "/recuperar" && metodo === "POST") return recuperar(request, env);
   if (ruta === "/salir" && metodo === "POST") return salir(request, env);

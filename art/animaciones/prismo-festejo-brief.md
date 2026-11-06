@@ -1,6 +1,12 @@
 # PRISMO — prueba de festejo en Higgsfield
 
-Fecha: 2026-11-06. Estado: no generado; bloqueado por el plan de la cuenta conectada.
+Fecha: 2026-11-06. Estado actual: generado en Google Flow y descargado; pendiente de ajustar y aprobar para partidas.
+
+## Resultado final de la prueba
+
+Tras la intervención manual del usuario, Flow generó el festejo. Se verificó una descarga de 1920 × 1080 con duración de 7,85 segundos, fondo opaco y audio. Se conserva como `art/animaciones/prismo-festejo-flow-1080p.mp4`. La copia web `public/art/animaciones/prismo-festejo.mp4` es H.264 de 1280 × 720, sin audio y de 1,78 MB. Vista previa: `public/animacion-prismo.html`.
+
+La prueba mantiene el aspecto general, pero cambia el guante a blanco, agrega sombra y deja poco margen al saltar. No está activada como reacción del catálogo de materias. Este resultado reemplaza los bloqueos históricos descritos a continuación.
 
 ## Continuación con Google Flow
 

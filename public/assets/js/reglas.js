@@ -42,11 +42,11 @@ export function respuestaCorrecta(entrada, respuesta) {
 const texto = (valor) => (typeof valor === "string" ? valor.trim().replace(/\s+/g, " ") : "");
 
 // Devuelve el rosco limpio y una lista de errores legibles; `fila` señala la entrada con problemas.
-export function revisarRosco(datos) {
+export function revisarRosco(datos, materias = MATERIAS) {
   const errores = [];
   const agregar = (mensaje, fila = null) => errores.push({ mensaje, fila });
   const titulo = texto(datos?.titulo);
-  const materia = MATERIAS.includes(datos?.materia) ? datos.materia : null;
+  const materia = materias.includes(datos?.materia) ? datos.materia : null;
   const segundos = Number(datos?.segundos);
   const crudas = Array.isArray(datos?.entradas) ? datos.entradas : [];
 

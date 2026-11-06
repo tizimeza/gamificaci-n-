@@ -1,0 +1,12 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+  X-Frame-Options: DENY
+/acceso*
+  Cache-Control: no-store
+/clases*
+  Cache-Control: no-store
+/panel*
+  Content-Security-Policy: default-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'
+/jugar*
+  Content-Security-Policy: default-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'

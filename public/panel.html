@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071226">
+  <title>Mis roscos | RoscoLab</title>
+  <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="/assets/app.css">
+  <script type="module" src="/assets/js/panel.js"></script>
+</head>
+<body class="sitio">
+  <header class="topbar">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div class="flex items-center gap-4"><a href="/" class="display-font text-lg font-black">RoscoLab</a><a id="volver-clases" href="clases.html" class="text-sm font-bold text-cyan-200 underline">Mis clases</a></div>
+      <div id="sesion" class="hidden items-center gap-3">
+        <span id="sesion-alias" class="text-sm font-bold text-slate-300"></span>
+        <button id="salir" class="secondary-btn px-3 text-sm">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+    <!-- Ingreso, registro y recuperación -->
+    <section id="vista-acceso" class="glass mx-auto hidden max-w-md rounded-3xl p-5 sm:p-7">
+      <h1 id="acceso-titulo" class="display-font text-2xl font-black">Entrá a tu cuenta</h1>
+      <p id="acceso-ayuda" class="mt-2 text-sm text-slate-300">Para crear y compartir tus roscos.</p>
+      <form id="acceso-form" class="mt-5 space-y-4">
+        <label class="block text-sm font-bold text-slate-300">Usuario
+          <input id="acceso-alias" class="form-field mt-1 block min-h-11 w-full px-3" autocomplete="username" required maxlength="20">
+        </label>
+        <label id="acceso-codigo-campo" class="hidden text-sm font-bold text-slate-300">Código de recuperación
+          <input id="acceso-codigo" class="form-field mt-1 block min-h-11 w-full px-3 uppercase" autocomplete="off" maxlength="14">
+        </label>
+        <label class="block text-sm font-bold text-slate-300"><span id="acceso-clave-etiqueta">Contraseña</span>
+          <input id="acceso-clave" type="password" class="form-field mt-1 block min-h-11 w-full px-3" autocomplete="current-password" required maxlength="128">
+        </label>
+        <p id="acceso-error" class="hidden text-sm font-bold text-rose-300" role="alert"></p>
+        <button id="acceso-enviar" class="primary-btn w-full px-4 text-sm">Entrar</button>
+      </form>
+      <div class="mt-4 flex flex-wrap justify-between gap-2 text-sm">
+        <button id="ir-registro" class="font-bold text-cyan-200 underline underline-offset-4">Crear una cuenta</button>
+        <button id="ir-ingreso" class="hidden font-bold text-cyan-200 underline underline-offset-4">Ya tengo cuenta</button>
+        <button id="ir-recuperar" class="font-bold text-slate-300 underline underline-offset-4">Olvidé mi contraseña</button>
+      </div>
+      <p id="acceso-privacidad" class="mt-4 hidden text-xs leading-relaxed text-slate-400">No pedimos email ni datos personales. Elegí un usuario que no sea tu nombre real.</p>
+    </section>
+
+    <!-- Código de recuperación, se muestra una sola vez -->
+    <section id="vista-recuperacion" class="glass mx-auto hidden max-w-md rounded-3xl p-5 sm:p-7">
+      <h1 class="display-font text-2xl font-black">Guardá este código</h1>
+      <p class="mt-2 text-sm leading-relaxed text-slate-300">Es la única forma de recuperar tu cuenta si olvidás la contraseña. No lo vamos a volver a mostrar.</p>
+      <p id="codigo-recuperacion" class="display-font mt-4 select-all rounded-xl bg-amber-300/10 p-4 text-center text-lg font-black tracking-wider text-amber-200"></p>
+      <button id="copiar-recuperacion" class="secondary-btn mt-3 w-full px-4 text-sm"><i class="fa-solid fa-copy mr-2" aria-hidden="true"></i>Copiar</button>
+      <label class="mt-4 flex items-center gap-2 text-sm font-semibold text-slate-300"><input id="recuperacion-guardado" type="checkbox"> Ya lo guardé en un lugar seguro</label>
+      <button id="recuperacion-seguir" class="primary-btn mt-4 w-full px-4 text-sm" disabled>Continuar</button>
+    </section>
+
+    <!-- Lista -->
+    <section id="vista-lista" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h1 class="display-font text-2xl font-black">Mis roscos</h1>
+        <button id="nuevo" class="primary-btn px-5 text-sm"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Nuevo rosco</button>
+      </div>
+      <div id="lista" class="mt-5 grid gap-4 md:grid-cols-2"></div>
+      <div id="lista-vacia" class="glass mt-5 hidden rounded-3xl p-8 text-center">
+        <p class="display-font text-lg font-extrabold">Todavía no creaste ningún rosco</p>
+        <p class="mt-2 text-sm text-slate-300">Empezá de cero o con una plantilla de ejemplo.</p>
+      </div>
+    </section>
+
+    <!-- Editor -->
+    <section id="vista-editor" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h1 id="editor-titulo" class="display-font text-2xl font-black">Nuevo rosco</h1>
+        <button id="editor-volver" class="secondary-btn px-4 text-sm">Volver</button>
+      </div>
+      <form id="editor" class="mt-5 space-y-5" novalidate>
+        <div class="glass grid gap-4 rounded-3xl p-5 md:grid-cols-[2fr_1fr_1fr]">
+          <label class="block text-sm font-bold text-slate-300">Título
+            <input id="campo-titulo" class="form-field mt-1 block min-h-11 w-full px-3" maxlength="80" placeholder="Ej. Revolución de Mayo">
+          </label>
+          <label class="block text-sm font-bold text-slate-300">Materia
+            <select id="campo-materia" class="form-field mt-1 block min-h-11 w-full px-3"></select>
+          </label>
+          <label class="block text-sm font-bold text-slate-300">Tiempo total (segundos)
+            <input id="campo-segundos" type="number" class="form-field mt-1 block min-h-11 w-full px-3" min="60" max="900" step="10">
+          </label>
+          <label id="plantilla-campo" class="block text-sm font-bold text-slate-300 md:col-span-3">Empezar con una plantilla
+            <select id="campo-plantilla" class="form-field mt-1 block min-h-11 w-full px-3"></select>
+          </label>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="display-font text-lg font-extrabold">Letras <span id="contador" class="text-sm font-bold text-slate-400"></span></h2>
+            <button id="agregar" type="button" class="secondary-btn px-4 text-sm"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Agregar letra</button>
+          </div>
+          <p class="mt-1 text-sm text-slate-400">La palabra puede empezar con la letra o contenerla. Otras respuestas válidas van separadas por comas.</p>
+          <div id="filas" class="mt-3 space-y-3"></div>
+        </div>
+
+        <ul id="editor-errores" class="hidden list-inside list-disc rounded-2xl border border-rose-300/30 bg-rose-400/10 p-4 text-sm font-semibold text-rose-200" role="alert"></ul>
+        <div class="flex justify-end"><button id="guardar" class="primary-btn px-6 text-sm">Guardar rosco</button></div>
+      </form>
+    </section>
+  </main>
+
+  <dialog id="dialogo-compartir" class="dialogo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 class="display-font text-xl font-black">Compartí tu rosco</h2>
+      <p class="mt-2 text-sm text-slate-300">Con este código o enlace pueden jugar sin registrarse.</p>
+      <p id="compartir-codigo" class="display-font mt-4 text-center text-4xl font-black tracking-widest text-amber-200"></p>
+      <input id="compartir-enlace" class="form-field mt-4 block min-h-11 w-full px-3 text-sm" readonly aria-label="Enlace para compartir">
+      <div class="mt-4 flex justify-end gap-2">
+        <button id="compartir-cerrar" class="secondary-btn px-4 text-sm">Cerrar</button>
+        <button id="compartir-copiar" class="primary-btn px-4 text-sm"><i class="fa-solid fa-copy mr-2" aria-hidden="true"></i>Copiar enlace</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dialogo-ranking" class="dialogo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 id="ranking-titulo" class="display-font text-xl font-black"></h2>
+      <div id="ranking-lista" class="mt-3 max-h-96 overflow-y-auto"></div>
+      <div class="mt-4 flex justify-between gap-2">
+        <button id="ranking-borrar" class="danger-btn px-4 text-sm">Reiniciar ranking</button>
+        <button id="ranking-cerrar" class="secondary-btn px-4 text-sm">Cerrar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dialogo-confirmar" class="dialogo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 id="confirmar-titulo" class="display-font text-xl font-black"></h2>
+      <p id="confirmar-texto" class="mt-2 text-sm text-slate-300"></p>
+      <div class="mt-5 flex justify-end gap-2">
+        <button id="confirmar-no" class="secondary-btn px-4 text-sm">Cancelar</button>
+        <button id="confirmar-si" class="danger-btn px-4 text-sm">Sí, borrar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="avisos" class="pointer-events-none fixed bottom-4 right-4 z-50 flex max-w-[calc(100%-2rem)] flex-col items-end gap-2" aria-live="polite"></div>
+</body>
+</html>

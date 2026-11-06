@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "roscolab",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/r/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "roscolab",
+      // Se reemplaza por el id real al crear la base con `wrangler d1 create roscolab`.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

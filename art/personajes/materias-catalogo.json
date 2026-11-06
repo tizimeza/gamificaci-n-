@@ -1,0 +1,87 @@
+{
+  "styleReference": "voltio-base.png",
+  "generationTool": "image_gen integrada",
+  "characters": [
+    {
+      "id": "prismo",
+      "name": "PRISMO",
+      "subject": "Matemática",
+      "description": "Cubo geométrico",
+      "image": "prismo-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Create PRISMO, an original mathematics mascot for a school quiz game where teachers create quizzes for any subject. Use the attached VOLTIO image ONLY as a style reference: same collectible glossy 3D vinyl toy finish, large expressive friendly eyes, navy limbs, oversized sneakers, rounded forms, playful confident energy, soft studio light and faint cyan rim light. PRISMO is an anthropomorphic rounded geometric cube: big electric-cyan cube head/body with a clearly visible navy side face and yellow beveled edges, small navy arms and legs, navy/cyan sneakers with coral details and white soles. A small friendly pair of round navy glasses frames its big eyes. Clever mischievous smile. One open hand presents three small simple solid geometric objects, a yellow sphere, a coral cone and a cyan cube, clustered closely above the palm. The objects are plain physical geometry models, with no writing or markings. Character design should immediately communicate mathematics through geometry, without written numerals or equations. Different silhouette and identity from VOLTIO; no lightning emblems. Exactly one character, full body, centered, facing forward with slight three-quarter turn, relaxed standing base pose. Clean generous transparent margin at least 10% on every side, square 1024x1024 PNG with genuine alpha transparency. No ground, no floor shadow, no backdrop, no text, no letters, no numbers, no logos, no watermark, no existing characters, no fear or violence."
+    },
+    {
+      "id": "leti",
+      "name": "LETI",
+      "subject": "Lengua",
+      "description": "Libro con lápiz",
+      "image": "leti-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: LENGUA mascot named LETI: anthropomorphic chunky closed navy storybook with a bright yellow spine and cream page block visible at side, coral ribbon bookmark curling from top. Expressive face on cyan inset front cover with no markings. Small yellow pencil held upright in one hand, waving with the other. Imaginative and charismatic. No writing on book or pencil."
+    },
+    {
+      "id": "mundi",
+      "name": "MUNDI",
+      "subject": "Geografía",
+      "description": "Globo explorador",
+      "image": "mundi-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: GEOGRAFÍA mascot named MUNDI: an anthropomorphic globe with electric-cyan oceans and simplified raised yellow continent shapes that evoke a recognizable Earth, Americas visible, no political borders or labels. Navy globe meridian support curves gently around the rear of its round head/body, short limbs and chunky sneakers. Friendly explorer, coral small backpack straps, one hand shading its eyes as if looking toward the horizon, other hand on hip. Big friendly face integrated into lower front of globe without obscuring all geography."
+    },
+    {
+      "id": "crono",
+      "name": "CRONO",
+      "subject": "Historia",
+      "description": "Pergamino con reloj de arena",
+      "image": "crono-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: HISTORIA mascot named CRONO: anthropomorphic rolled parchment scroll, warm pale-yellow front face/body with thick rounded curled ends at top and bottom, navy outer roll edges and coral side ribbon accents. Large expressive eyes on parchment and a knowing playful smile. Small navy satchel at hip. Holds a small chunky cyan-and-yellow hourglass with coral sand, fully visible, in one hand. Other hand open as if enthusiastically telling a story. Scroll front otherwise blank. No writing, symbols, dates, weapons, armor, or real historical figures. History as curiosity about time and stories."
+    },
+    {
+      "id": "melo",
+      "name": "MELO",
+      "subject": "Música",
+      "description": "Corchea con auriculares",
+      "image": "melo-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: MÚSICA mascot named MELO: an anthropomorphic single eighth-note sculpture with a big rounded oval yellow note-head containing its expressive face, a short thick navy stem rising behind and ending in a curved cyan flag. Clear musical-note silhouette but compact chibi proportions. Chunky navy headphones with coral ear cushions frame the face, no branding. Short navy limbs with collection sneakers. One hand snaps fingers and the other is raised loosely as if keeping rhythm, both feet fully visible in a playful standing stance. Energetic and warm. No extra floating musical symbols."
+    },
+    {
+      "id": "broti",
+      "name": "BROTI",
+      "subject": "Biología",
+      "description": "Brote con lupa",
+      "image": "broti-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: BIOLOGÍA mascot named BROTI: anthropomorphic little living sprout with a large rounded teardrop leaf-shaped cyan face, yellow central leaf vein contour subtly integrated around face edges, and two plump cyan leaves growing from a short curved navy stem on top. Small rounded navy seed-shaped torso with coral belt-like rim, short collection limbs and sneakers. Holds a chunky yellow-rimmed magnifying glass to one side, not covering eyes; other hand gently presents a tiny coral bud on its palm. Curious warm naturalist personality. Clearly plant-based, no globe or chemistry flask. Render leaves as glossy collectible vinyl, not realistic foliage."
+    },
+    {
+      "id": "trazo",
+      "name": "TRAZO",
+      "subject": "Artística",
+      "description": "Paleta con pincel",
+      "image": "trazo-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: ARTÍSTICA mascot named TRAZO: anthropomorphic rounded painter palette with asymmetric kidney-shaped warm yellow head/body, thick navy side edge and a small thumb-hole near upper side. Huge expressive face in center, four plump paint dabs in cyan, coral, navy and cream placed around outer edge, not covering face. Holds a chunky paintbrush upright with navy handle, yellow ferrule and coral paint on soft rounded bristles. Other hand on hip, playful creative confident smile. Small jaunty coral artist beret. Clear palette silhouette, short navy limbs and collection sneakers. No paint splatter outside character, no writing or decorative glyphs."
+    },
+    {
+      "id": "atomo",
+      "name": "ÁTOMO",
+      "subject": "Física",
+      "description": "Átomo con imán",
+      "image": "atomo-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: FÍSICA mascot named ÁTOMO: anthropomorphic large smooth yellow spherical nucleus with expressive face and short navy limbs and collection sneakers. Three thick elegant rounded electric-cyan orbital loops cross behind and around the spherical body in three dimensions, never obscuring eyes or mouth; three small coral electron beads fixed on the loops. Compact coherent stylized atom silhouette, all loops fully within generous framing margin. One hand holds a small navy horseshoe magnet with cyan and coral tips, without markings; other hand raised in an inviting teaching gesture. Curious and confident. This is a playful science emblem, no equations or written symbols, no lightning shapes."
+    },
+    {
+      "id": "burbu",
+      "name": "BURBU",
+      "subject": "Química",
+      "description": "Matraz con burbujas",
+      "image": "burbu-base.png",
+      "status": "propuesta",
+      "prompt": "Use case: stylized-concept. Original school subject mascot for a teacher-customizable educational quiz game. Match the provided VOLTIO style reference: collectible glossy 3D vinyl toy, rounded chibi forms, huge expressive eyes, mischievous friendly smile, navy arms and short legs, oversized navy/cyan sneakers with white soles and coral accents. Saturated navy/electric cyan/yellow/coral collection palette. Soft studio lighting, subtle cyan rim light. Full body, single character, centered, forward with slight three-quarter turn, relaxed friendly standing base pose, generous 12% clear margin on EVERY side. Square 1024x1024 PNG, genuine transparent alpha background. No floor, no ground shadow, no text, letters, numerals, logos, watermarks, existing characters, scary or violent elements. Do not copy lightning shapes or emblems from VOLTIO. Subject-specific design: QUÍMICA mascot named BURBU: anthropomorphic chunky rounded Erlenmeyer flask, recognizable wide conical body and short narrow neck with thick navy rim. Toy-like translucent cyan resin shell, bright yellow liquid filling lower half with a curved liquid surface, big expressive friendly face on front. Navy protective lab goggles rest above eyes on upper flask shoulders without hiding face. Three small glossy coral/cyan bubbles rise immediately above open neck within silhouette framing. Short navy arms/legs and collection sneakers, one hand gives thumbs-up, other open palm. Enthusiastic experimenter. Safe cheerful toy icon: no hazardous substances, no fire, no explosions, no measuring marks or writing, no extra glassware."
+    }
+  ]
+}

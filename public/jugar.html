@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="/assets/app.css">
   <link rel="stylesheet" href="/assets/personajes.css">
   <script type="module" src="/assets/js/jugar.js"></script>
+  <link rel="stylesheet" href="/assets/powerups.css">
+  <link rel="stylesheet" href="/assets/perfil.css">
 </head>
 <body class="sitio">
   <header class="topbar">
@@ -42,6 +44,7 @@
         <h2 class="mt-5 text-sm font-bold text-slate-300">Elegí tu seudónimo</h2>
         <div id="seudonimos" class="mt-2 grid gap-2 sm:grid-cols-3"></div>
         <button id="otros-seudonimos" class="mt-2 text-sm font-bold text-cyan-200 underline underline-offset-4">Ver otros</button>
+        <p class="avatar-instruction">Elegí tu personaje para el ranking</p><div id="avatar-selector"></div><p id="avatar-cuenta" class="avatar-instruction"></p>
         <p id="inicio-error" class="mt-3 hidden text-sm font-bold text-rose-300" role="alert"></p>
         <button id="empezar" class="primary-btn mt-5 w-full px-4 text-base" disabled>Empezar</button>
       </div>
@@ -80,6 +83,17 @@
           </div>
         </form>
         <p id="progreso" class="mt-4 text-sm font-semibold text-slate-300"></p>
+        <section id="powerups-juego" class="game-powerups" hidden aria-label="Tus power-ups">
+          <h2>Una ayuda para seguir</h2>
+          <div class="powerup-buttons">
+            <button type="button" data-powerup="tiempo"><img src="/art/powerups/tiempo-extra.webp" alt="" width="64" height="64"><span>Tiempo extra</span><small>+15 segundos</small></button>
+            <button type="button" data-powerup="pista"><img src="/art/powerups/pista.webp" alt="" width="64" height="64"><span>Pista</span><small>Para esta letra</small></button>
+            <button type="button" data-powerup="reintento"><img src="/art/powerups/segunda-oportunidad.webp" alt="" width="64" height="64"><span>Segunda oportunidad</span><small>Reintentá un error</small></button>
+          </div>
+          <label id="reintento-campo" hidden>Letra para reintentar<select id="reintento-pos" class="form-field"></select></label>
+          <p id="powerup-mensaje" role="status"></p>
+          <p id="pista-extra" class="extra-hint" role="status" hidden></p>
+        </section>
         <p id="vivo-posicion" class="mt-1 hidden text-sm font-bold text-amber-200" role="status"></p>
         <button id="abandonar" class="mt-2 text-sm font-semibold text-slate-400 underline underline-offset-4">Terminar ahora</button>
       </div>
@@ -96,6 +110,7 @@
           <button id="compartir" class="secondary-btn px-5 text-sm"><i class="fa-solid fa-copy mr-2" aria-hidden="true"></i>Copiar enlace</button>
         </div>
       </div>
+      <section id="final-actividad" class="daily-panel" hidden aria-label="Tu práctica diaria"></section>
       <div class="glass rounded-3xl p-5">
         <div class="flex items-center justify-between gap-3">
           <h2 class="display-font text-lg font-extrabold">Ranking</h2>

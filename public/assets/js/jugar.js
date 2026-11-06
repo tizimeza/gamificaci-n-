@@ -1,3 +1,4 @@
+import {selectorAvatar,dibujarActividad} from './perfil.js';
 import { api, aviso, dibujarRanking, el, formatoTiempo, icono } from "./api.js";
 import { generarSeudonimo } from "./seudonimos.js";
 import { presentacionSegura, crearPersonaje, reaccionPersonaje } from './materias.js';
@@ -10,7 +11,7 @@ const SONDEO_JUEGO_MS = 4000;
 const codigo = new URLSearchParams(location.search).get("c")?.trim().toUpperCase() ?? "";
 
 const estado = {
-  info: null, seudonimo: null, token: null, items: [], respuestas: {}, actual: null,
+  avatar:'voltio',cuenta:null, powerups: {habilitados:false,usados:{},pistas:{}}, info: null, seudonimo: null, token: null, items: [], respuestas: {}, actual: null,
   finMs: 0, reloj: null, ocupado: false, sondeo: null,
   sala: null, tokenSala: null, enCuenta: false, salaCerrada: false, presentacion: null
 };
@@ -25,10 +26,10 @@ function aplicarMateria(info) {
 
 function idJugador() {
   try {
-    let id = localStorage.getItem("roscolab:jugador");
+    let id = localStorage.getItem(estado.cuenta?`roscolab:jugador:${estado.cuenta}`:"roscolab:jugador");
     if (!id) {
       id = crypto.randomUUID();
-      localStorage.setItem("roscolab:jugador", id);
+      localStorage.setItem(estado.cuenta?`roscolab:jugador:${estado.cuenta}`:"roscolab:jugador", id);
     }
     return id;
   } catch {
@@ -120,7 +121,7 @@ async function abrirInicio() {
   document.title = `${titulo} | RoscoLab`;
   $("#inicio-materia").textContent = materia;
   $("#inicio-titulo").textContent = titulo;
-  $("#inicio-detalle").textContent = `${letras.length} letras · ${formatoTiempo(segundos * 1000)} minutos para completarlo. Si errás una letra, no vuelve.`;
+  $("#inicio-detalle").textContent = `${letras.length} letras · ${formatoTiempo(segundos * 1000)} minutos para completarlo. Podés pasar y volver a las letras pendientes.`;
   ofrecerSeudonimos();
   mostrar("inicio");
   await actualizarRanking($("#inicio-ranking"));
@@ -137,7 +138,7 @@ async function empezar() {
   if (estado.sala) return unirseASala();
   try {
     const partida = await api(`/r/${codigo}/intentos`, {
-      metodo: "POST", cuerpo: { jugador: idJugador(), seudonimo: estado.seudonimo }
+      metodo: "POST", cuerpo: { jugador: idJugador(), seudonimo: estado.seudonimo, avatar:estado.avatar }
     });
     if (partida.seudonimo !== estado.seudonimo) aviso(`Retomamos tu partida como ${partida.seudonimo}.`);
     cargarPartida(partida);
@@ -161,7 +162,7 @@ function abrirSala(sala) {
   }
   $("#inicio-materia").textContent = `Sala en vivo · ${sala.materia}`;
   $("#inicio-titulo").textContent = sala.titulo;
-  $("#inicio-detalle").textContent = `${sala.letras} letras · ${formatoTiempo(sala.segundos * 1000)} minutos. Todos arrancan al mismo tiempo. Si errás una letra, no vuelve.`;
+  $("#inicio-detalle").textContent = `${sala.letras} letras · ${formatoTiempo(sala.segundos * 1000)} minutos. Todos arrancan al mismo tiempo. Podés pasar y volver a las letras pendientes.`;
   $("#inicio-ranking").parentElement.classList.add("hidden");
   $("#empezar").textContent = "Entrar a la sala";
   ofrecerSeudonimos();
@@ -170,7 +171,7 @@ function abrirSala(sala) {
 
 async function unirseASala() {
   try {
-    await api(`/sala/${codigo}/unirme`, { metodo: "POST", cuerpo: { jugador: idJugador(), seudonimo: estado.seudonimo } });
+    await api(`/sala/${codigo}/unirme`, { metodo: "POST", cuerpo: { jugador: idJugador(), seudonimo: estado.seudonimo, avatar:estado.avatar } });
     entrarEnSala(await api(`/sala/${codigo}`, { encabezados: encabezadoJugador() }));
   } catch (error) {
     mostrarErrorInicio(error.message);
@@ -207,7 +208,9 @@ function dibujarTablaSala(sala) {
 
 function atenderSala(sala) {
   estado.sala = sala;
+  if (estado.token && sala.estado === 'jugando') estado.finMs = performance.now() + sala.restanteMs;
   dibujarTablaSala(sala);
+  if(estado.token && sala.powerups) api(`/intentos/${estado.token}`).then(p=>{estado.powerups=p.powerups;actualizarPowerups();}).catch(()=>{});
   if (sala.estado === "espera") {
     $("#espera-texto").textContent = `Ya entraste. Son ${sala.jugadores} en la sala; falta que empiece.`;
     return programarSondeo(SONDEO_ESPERA_MS);
@@ -287,8 +290,10 @@ async function cerrarSala(sala) {
 
 function cargarPartida(partida) {
   estado.token = partida.token;
+  estado.avatar = partida.avatar ?? estado.avatar;
   estado.items = partida.items;
   estado.respuestas = partida.respuestas;
+  estado.powerups = partida.powerups;
   estado.finMs = performance.now() + partida.restanteMs;
   estado.actual = null;
   mostrar("juego");
@@ -302,17 +307,27 @@ function tic() {
   const restante = estado.finMs - performance.now();
   $("#reloj").textContent = formatoTiempo(restante);
   $("#reloj").classList.toggle("text-rose-300", restante <= 15000);
-  if (restante <= 0) terminar();
+  if (restante <= 0 && !estado.ocupado) terminar();
 }
 
 const pendientes = () => estado.items.filter((item) => !estado.respuestas[item.pos]);
 
 // Sigue el orden de la rueda y vuelve a las letras pasadas al completar la vuelta.
 function avanzar() {
+  $('#powerup-mensaje').textContent = '';
   const lista = pendientes();
   const siguiente = lista.find((item) => item.pos > (estado.actual ?? -1)) ?? lista[0];
-  if (!siguiente) return;
+  $('#respuesta-form').hidden = !siguiente;
+  actualizarPowerups();
+  if (!siguiente) {
+    dibujarRosco();
+    $('#pista-letra').textContent = 'Completaste la vuelta';
+    $('#definicion').textContent = 'Podés usar Segunda oportunidad para revisar un error o terminar ahora.';
+    $('#progreso').textContent = `${estado.items.length} de ${estado.items.length} respondidas`;
+    return;
+  }
   estado.actual = siguiente.pos;
+  actualizarPowerups();
   dibujarRosco();
   $("#pista-letra").textContent = `${siguiente.modo === "empieza" ? "Empieza con" : "Contiene la"} ${siguiente.letra}`;
   $("#definicion").textContent = siguiente.definicion;
@@ -368,6 +383,7 @@ async function responder(evento) {
   } finally {
     estado.ocupado = false;
     $("#responder").disabled = false;
+    actualizarPowerups();
   }
 }
 
@@ -386,6 +402,46 @@ async function terminar() {
   }
 }
 
+// Ayudas consumidas por el servidor; recargar no devuelve cargas.
+function actualizarPowerups() {
+  const ayudas=estado.powerups ?? {habilitados:false,usados:{},pistas:{}};
+  $('#powerups-juego').hidden=!ayudas.habilitados;
+  const errores=estado.items.filter(i=>estado.respuestas[i.pos]==='incorrecta');
+  const elegido=$('#reintento-pos').value;
+  $('#reintento-pos').replaceChildren(...errores.map(i=>new Option(`Letra ${i.letra}`,String(i.pos))));
+  if(errores.some(i=>String(i.pos)===elegido)) $('#reintento-pos').value=elegido;
+  $('#reintento-campo').hidden=!errores.length || Object.hasOwn(ayudas.usados,'reintento');
+  const item=estado.items.find(i=>i.pos===estado.actual);
+  document.querySelectorAll('[data-powerup]').forEach(b=>{
+    const tipo=b.dataset.powerup, usado=Object.hasOwn(ayudas.usados,tipo);
+    const noPista=tipo==='pista'&&(!item?.tienePista||Boolean(estado.respuestas[estado.actual]));
+    b.disabled=estado.ocupado||!estado.token||usado||noPista||(tipo==='reintento'&&!errores.length);
+    b.querySelector('small').textContent=usado?'Usado':tipo==='tiempo'?(estado.sala?'+15 s para todos':'+15 segundos'):tipo==='pista'?(noPista?'Sin pista en esta letra':'Para esta letra'):'Elegí una letra errada';
+  });
+  const pista=ayudas.pistas[estado.actual];
+  $('#pista-extra').hidden=!pista||Boolean(estado.respuestas[estado.actual]);
+  $('#pista-extra').textContent=pista?`Pista del profe: ${pista}`:'';
+}
+async function usarAyuda(tipo) {
+  if(estado.ocupado||!estado.token) return;
+  const pos=tipo==='reintento'?Number($('#reintento-pos').value):estado.actual;
+  estado.ocupado=true; actualizarPowerups();
+  $('#responder').disabled=true; $('#pasar').disabled=true;
+  try {
+    const p=await api(`/intentos/${estado.token}/powerups`,{metodo:'POST',cuerpo:{tipo,pos}});
+    estado.respuestas=p.respuestas;estado.powerups=p.powerups;estado.finMs=performance.now()+p.restanteMs;
+    if(tipo==='reintento'){estado.actual=pos-1;avanzar();}
+    $('#powerup-mensaje').textContent=tipo==='tiempo'?(estado.sala?'¡15 segundos extra para toda la sala!':'¡Sumaste 15 segundos!'):tipo==='pista'?'Pista revelada para esta letra.':'Letra recuperada. Probá otra respuesta.';
+    reaccionPersonaje(document.querySelector('main'),'acierto');
+  } catch(error) {
+    aviso(error.message,'mal');
+    try {const p=await api(`/intentos/${estado.token}`);estado.powerups=p.powerups;estado.respuestas=p.respuestas;estado.finMs=performance.now()+p.restanteMs;} catch {}
+  } finally {
+    estado.ocupado=false;$('#responder').disabled=false;$('#pasar').disabled=pendientes().length<=1;actualizarPowerups();
+  }
+}
+document.querySelectorAll('[data-powerup]').forEach(b=>b.addEventListener('click',()=>usarAyuda(b.dataset.powerup)));
+
 // --- Final
 
 function mostrarFinal(resultado) {
@@ -398,6 +454,7 @@ function mostrarFinal(resultado) {
     programarSondeo(0); // El marcador en pantalla es del último ciclo: se trae el puntaje recién cerrado.
     return;
   }
+  if(resultado.actividad){$('#final-actividad').hidden=false;dibujarActividad($('#final-actividad'),resultado.actividad);}
   $("#final-puntaje").textContent = `${resultado.aciertos} / ${resultado.total}`;
   $("#final-detalle").textContent = `${resultado.errores} ${resultado.errores === 1 ? "error" : "errores"} · ${formatoTiempo(resultado.duracionMs)}`;
   const iconos = {
@@ -429,7 +486,7 @@ function mostrarFinal(resultado) {
 $("#otros-seudonimos").addEventListener("click", ofrecerSeudonimos);
 $("#empezar").addEventListener("click", empezar);
 $("#respuesta-form").addEventListener("submit", responder);
-$("#pasar").addEventListener("click", avanzar);
+$("#pasar").addEventListener("click", () => {if(!estado.ocupado) avanzar();});
 $("#abandonar").addEventListener("click", terminar);
 $("#otra-vez").addEventListener("click", () => location.reload());
 $("#compartir").addEventListener("click", async () => {
@@ -441,4 +498,14 @@ $("#compartir").addEventListener("click", async () => {
   }
 });
 
+try {
+  const perfil=await api('/perfil').catch(error=>{if(error.estado===401)return null;throw error;});
+  estado.cuenta=perfil?.alias ?? null;
+  try{estado.avatar=perfil?.avatar ?? localStorage.getItem('roscolab:avatar') ?? 'voltio';}catch{}
+  $('#avatar-cuenta').textContent=perfil?'Tu avatar y tus días de práctica se guardan en tu cuenta.':'Podés jugar sin cuenta. Para guardar tu racha, ingresá con tu cuenta de alumno.';
+  await selectorAvatar($('#avatar-selector'),estado.avatar,async avatar=>{
+    if(estado.cuenta) await api('/perfil',{metodo:'PATCH',cuerpo:{avatar}});
+    estado.avatar=avatar;try{localStorage.setItem('roscolab:avatar',avatar);}catch{}
+  });
+} catch(error){$('#avatar-cuenta').textContent='No pudimos cargar los avatares. Podés jugar con VOLTIO.';}
 await abrirInicio();

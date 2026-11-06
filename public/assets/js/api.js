@@ -62,6 +62,11 @@ export function dibujarRanking(contenedor, filas) {
   filas.forEach((fila) => {
     const item = el("li", `flex items-center gap-3 rounded-xl px-3 py-2 text-sm ${fila.soyYo ? "bg-amber-300/15 ring-1 ring-amber-300/40" : "bg-white/[.04]"}`);
     const nombre = el("span", "min-w-0 flex-1 break-words font-bold", fila.seudonimo + (fila.soyYo ? " (vos)" : ""));
+    const avatar=el('img');
+    avatar.src=`/art/personajes/${/^[a-z0-9-]{1,32}$/.test(fila.avatar ?? '')?fila.avatar:'voltio'}-mini.png`;
+    avatar.alt=`Avatar ${fila.avatar ?? 'voltio'}`;avatar.width=36;avatar.height=36;avatar.style.cssText='width:36px;height:36px;object-fit:contain;flex-shrink:0';avatar.loading='lazy';
+    avatar.addEventListener('error',()=>{avatar.src='/art/personajes/voltio-mini.png';},{once:true});
+    item.append(avatar);
     item.append(
       el("span", "display-font w-6 text-center font-black text-cyan-200", String(fila.posicion)),
       nombre,

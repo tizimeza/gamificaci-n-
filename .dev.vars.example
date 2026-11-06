@@ -1,0 +1,6 @@
+# Copiar a .dev.vars (ignorado por Git). No guardar la clave en el código ni en el navegador.
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.8-flash
+# Solo habilitar después de revisar cuota/modelo y configurar planes de docentes.
+GENERACION_DIARIA=false
+GENERADOR_LIMITE_DIARIO=20

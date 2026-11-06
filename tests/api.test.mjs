@@ -278,3 +278,126 @@ test("el enlace corto lleva a la página de juego", async () => {
   assert.equal(respuesta.status, 302);
   assert.match(respuesta.headers.get("location"), /\/jugar\?c=ABC234$/);
 });
+
+test('power-ups: consumo único, pistas privadas, reintento y persistencia', async () => {
+  const {api}=await creador(), publico=cliente();
+  const contenido=rosco({powerups:true});
+  contenido.entradas[0].pista='Pensá en una receta que ordena instrucciones.';
+  const creado=await api('/roscos',{metodo:'POST',cuerpo:contenido});
+  assert.equal(creado.estado,201);
+  const cuerpo={jugador:jugadorNuevo(),seudonimo:'Puma Veloz 42'};
+  const inicio=(await publico(`/r/${creado.datos.codigo}/intentos`,{metodo:'POST',cuerpo})).datos;
+  assert.equal(inicio.powerups.habilitados,true);
+  assert.equal(inicio.items[0].tienePista,true);
+  assert.ok(!JSON.stringify(inicio).includes(contenido.entradas[0].pista));
+  const usar=(tipo,pos)=>publico(`/intentos/${inicio.token}/powerups`,{metodo:'POST',cuerpo:{tipo,pos}});
+  const sinPista=await usar('pista',1);assert.equal(sinPista.estado,409);
+  const pista=await usar('pista',0);assert.equal(pista.estado,201);
+  assert.equal(pista.datos.powerups.pistas[0],contenido.entradas[0].pista);
+  assert.equal((await usar('pista',0)).estado,409);
+  const extras=await Promise.all(Array.from({length:5},()=>usar('tiempo')));
+  assert.equal(extras.filter(r=>r.estado===201).length,1);
+  const retomada=(await publico(`/r/${creado.datos.codigo}/intentos`,{metodo:'POST',cuerpo})).datos;
+  assert.equal(retomada.token,inicio.token);
+  assert.ok(retomada.restanteMs>inicio.restanteMs+12000);
+  assert.ok(retomada.restanteMs<=inicio.restanteMs+15000);
+  assert.equal(retomada.powerups.pistas[0],contenido.entradas[0].pista);
+  assert.equal((await usar('reintento',0)).estado,409);
+  const responder=(pos,respuesta)=>publico(`/intentos/${inicio.token}/responder`,{metodo:'POST',cuerpo:{pos,respuesta}});
+  assert.equal((await responder(0,'no sé')).datos.correcta,false);
+  const intentos=await Promise.all([usar('reintento',0),usar('reintento',0)]);
+  assert.equal(intentos.filter(r=>r.estado===201).length,1);
+  assert.equal((await publico(`/intentos/${inicio.token}`)).datos.respuestas[0],undefined);
+  assert.equal((await responder(0,'algoritmo')).datos.correcta,true);
+  const resultado=(await publico(`/intentos/${inicio.token}/terminar`,{metodo:'POST',cuerpo:{}})).datos.resultado;
+  assert.equal(resultado.aciertos,1);assert.equal(resultado.errores,0);
+  assert.equal((await usar('tiempo')).estado,409);
+  assert.equal((await responder(1,'bit')).estado,409);
+});
+
+test('power-ups: última letra errada permite reintentar y la configuración se conserva', async () => {
+  const {api}=await creador(), publico=cliente();
+  const contenido=rosco({powerups:true});
+  const creado=(await api('/roscos',{metodo:'POST',cuerpo:contenido})).datos;
+  assert.equal((await api(`/roscos/${creado.id}`)).datos.powerups,true);
+  const jugador=jugadorNuevo(),cuerpo={jugador,seudonimo:'Puma Veloz 42'};
+  const p=(await publico(`/r/${creado.codigo}/intentos`,{metodo:'POST',cuerpo})).datos;
+  const responder=(pos,respuesta)=>publico(`/intentos/${p.token}/responder`,{metodo:'POST',cuerpo:{pos,respuesta}});
+  for(let pos=0;pos<4;pos++) await responder(pos,contenido.entradas[pos].palabra);
+  assert.equal((await responder(4,'error')).datos.terminado,false);
+  const usar=await publico(`/intentos/${p.token}/powerups`,{metodo:'POST',cuerpo:{tipo:'reintento',pos:4}});
+  assert.equal(usar.estado,201);
+  const fin=await responder(4,'año');
+  assert.equal(fin.datos.terminado,true);assert.equal(fin.datos.resultado.aciertos,5);assert.equal(fin.datos.resultado.errores,0);
+  const sin=(await api('/roscos',{metodo:'POST',cuerpo:rosco({powerups:false})})).datos;
+  const s=(await publico(`/r/${sin.codigo}/intentos`,{metodo:'POST',cuerpo})).datos;
+  assert.equal((await publico(`/intentos/${s.token}/powerups`,{metodo:'POST',cuerpo:{tipo:'tiempo'}})).estado,409);
+});
+
+test('avatar y actividad: perfil propio, ranking y un único día por completar roscos', async () => {
+  const cuenta=await creador(), publico=cliente();
+  assert.equal((await publico('/perfil')).estado,401);
+  assert.equal((await cuenta.api('/perfil',{metodo:'PATCH',cuerpo:{avatar:'../archivo'}})).estado,422);
+  const elegido=await cuenta.api('/perfil',{metodo:'PATCH',cuerpo:{avatar:'broti'}});
+  assert.equal(elegido.datos.avatar,'broti');assert.equal(elegido.datos.actividad.racha,0);
+  const otro=await creador();assert.equal((await otro.api('/perfil')).datos.avatar,'voltio');
+  const creado=(await cuenta.api('/roscos',{metodo:'POST',cuerpo:rosco()})).datos;
+  for(let ronda=0;ronda<2;ronda++) {
+    const inicio=await cuenta.api(`/r/${creado.codigo}/intentos`,{metodo:'POST',cuerpo:{jugador:jugadorNuevo(),seudonimo:'Puma Veloz 42'}});
+    assert.equal(inicio.datos.avatar,'broti');
+    let fin;
+    for(let pos=0;pos<5;pos++) fin=await cuenta.api(`/intentos/${inicio.datos.token}/responder`,{metodo:'POST',cuerpo:{pos,respuesta:rosco().entradas[pos].palabra}});
+    assert.equal(fin.datos.resultado.actividad.racha,1);
+    assert.equal(fin.datos.resultado.actividad.diasTotales,1);
+    assert.equal(fin.datos.resultado.actividad.hoyCompletado,true);
+    await cuenta.api(`/intentos/${inicio.datos.token}/terminar`,{metodo:'POST',cuerpo:{}});
+  }
+  assert.equal((await cuenta.api('/perfil')).datos.actividad.diasTotales,1);
+  assert.equal((await otro.api('/perfil')).datos.actividad.diasTotales,0);
+  assert.equal((await publico(`/r/${creado.codigo}/ranking`)).datos.ranking[0].avatar,'broti');
+  assert.equal((await publico(`/r/${creado.codigo}/intentos`,{metodo:'POST',cuerpo:{jugador:jugadorNuevo(),seudonimo:'Puma Veloz 42',avatar:'inexistente'}})).estado,422);
+});
+
+test('actividad: abandonar y completar sin aciertos no cumplen el objetivo diario', async()=>{
+  const cuenta=await creador();
+  const creado=(await cuenta.api('/roscos',{metodo:'POST',cuerpo:rosco()})).datos;
+  const empezar=async()=> (await cuenta.api(`/r/${creado.codigo}/intentos`,{metodo:'POST',cuerpo:{jugador:jugadorNuevo(),seudonimo:'Puma Veloz 42',avatar:'leti'}})).datos;
+  const p=await empezar();await cuenta.api(`/intentos/${p.token}/responder`,{metodo:'POST',cuerpo:{pos:0,respuesta:'algoritmo'}});
+  await cuenta.api(`/intentos/${p.token}/terminar`,{metodo:'POST',cuerpo:{}});
+  assert.equal((await cuenta.api('/perfil')).datos.actividad.diasTotales,0);
+  const q=await empezar();for(let pos=0;pos<5;pos++)await cuenta.api(`/intentos/${q.token}/responder`,{metodo:'POST',cuerpo:{pos,respuesta:'error'}});
+  assert.equal((await cuenta.api('/perfil')).datos.actividad.diasTotales,0);
+});
+
+test('rachas: fechas argentinas, ayer, cortes, récord e insignias', async()=>{
+  const {calcularActividad,diaArgentina}=await import('../worker/perfil.js');
+  assert.equal(diaArgentina(Date.parse('2026-11-07T02:59:59Z')),'2026-11-06');
+  assert.equal(diaArgentina(Date.parse('2026-11-07T03:00:00Z')),'2026-11-07');
+  let a=calcularActividad(['2026-11-03','2026-11-04','2026-11-05','2026-11-05'],'2026-11-06');
+  assert.equal(a.racha,3);assert.equal(a.hoyCompletado,false);assert.equal(a.diasTotales,3);assert.deepEqual(a.insignias,[1,3]);
+  a=calcularActividad(['2026-10-31','2026-11-01','2026-11-02','2026-11-04'],'2026-11-06');
+  assert.equal(a.racha,0);assert.equal(a.mejorRacha,3);
+  a=calcularActividad(['2026-11-06'],'2026-11-06');assert.equal(a.racha,1);assert.equal(a.semana.length,7);assert.equal(a.semana.at(-1).completado,true);
+});
+
+test('generador API: fuentes privadas, permisos, plan diario y configuración ausente',async()=>{
+ const profe=await creador(),otro=await creador(),alumno=cliente();
+ assert.equal((await alumno('/registro',{metodo:'POST',cuerpo:{alias:unico(),clave:'clave-alumno-prueba',rol:'alumno'}})).estado,201);
+ assert.equal((await cliente()('/generador/config')).estado,401);
+ assert.equal((await alumno('/generador/config')).estado,403);
+ const contexto={materia:'Tecnología',jurisdiccion:'Nacional (NAP)',anio:1,modalidad:'General'};
+ const fuente={...contexto,titulo:'Material sintético de prueba',organismo:'Equipo de prueba',version:'2026',referencia:'Sección 1',url:'https://www.argentina.gob.ar/',texto:'Este fragmento didáctico es una prueba local del motor y no constituye un documento curricular oficial. Un algoritmo representa una secuencia ordenada de instrucciones para resolver un problema.'};
+ const creada=await profe.api('/generador/fuentes',{metodo:'POST',cuerpo:fuente});assert.equal(creada.estado,201);
+ assert.equal((await otro.api('/generador/fuentes')).datos.fuentes.length,0);
+ assert.equal((await profe.api('/generador/fuentes')).datos.fuentes.length,1);
+ const pedido={...contexto,tema:'Algoritmos y programación',dificultad:'Inicial',cantidad:5,fuenteIds:[creada.datos.id],clave:crypto.randomUUID()};
+ assert.equal((await otro.api('/generador/plan',{metodo:'POST',cuerpo:{...pedido,activo:true}})).estado,404);
+ assert.equal((await profe.api('/generador/plan',{metodo:'POST',cuerpo:{...pedido,anio:2,activo:true}})).estado,422);
+ assert.equal((await profe.api('/generador/plan',{metodo:'POST',cuerpo:{...pedido,activo:true}})).estado,200);
+ const config=(await profe.api('/generador/config')).datos;assert.equal(config.plan.activo,true);
+ assert.equal(config.GEMINI_API_KEY,undefined);
+ if(!config.disponible)assert.equal((await profe.api('/generador/borradores',{metodo:'POST',cuerpo:pedido})).estado,503);
+ assert.equal((await profe.api(`/generador/borradores/${crypto.randomUUID()}`)).estado,404);
+ assert.equal((await profe.api('/generador/borradores')).datos.borradores.length,0);
+ assert.equal((await profe.api('/generador/plan',{metodo:'POST',cuerpo:{activo:false}})).estado,200);
+});

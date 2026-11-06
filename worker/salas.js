@@ -1,3 +1,4 @@
+import { avatarValido } from './perfil.js';
 import { seudonimoValido } from "../public/assets/js/seudonimos.js";
 import { codigoAleatorio, tokenAleatorio } from "./seguridad.js";
 import { presentacionMateria } from './materias.js';
@@ -20,7 +21,7 @@ export async function salaEnCurso(env, salaId) {
 async function tablaDeSala(env, sala, jugador = "") {
   const terminada = estadoReal(sala) === "terminada";
   const { results } = await env.DB.prepare(
-    `SELECT j.seudonimo, j.jugador = ?1 AS soyYo, COALESCE(i.aciertos, 0) AS aciertos, COALESCE(i.errores, 0) AS errores,
+    `SELECT j.seudonimo, j.avatar, j.jugador = ?1 AS soyYo, COALESCE(i.aciertos, 0) AS aciertos, COALESCE(i.errores, 0) AS errores,
             i.fin, i.inicio, i.limite
      FROM sala_jugadores j
      LEFT JOIN intentos i ON i.sala_id = j.sala_id AND i.jugador = j.jugador
@@ -30,6 +31,7 @@ async function tablaDeSala(env, sala, jugador = "") {
   return results.map((fila, indice) => ({
     posicion: indice + 1,
     seudonimo: fila.seudonimo,
+    avatar: fila.avatar,
     aciertos: fila.aciertos,
     errores: fila.errores,
     duracionMs: fila.inicio === null ? 0 : (fila.fin ?? (terminada ? fila.limite : Date.now())) - fila.inicio,
@@ -47,13 +49,14 @@ function resumenSala(sala) {
     materia: sala.materia,
     letras: JSON.parse(sala.entradas).length,
     segundos: sala.segundos,
+    powerups: Boolean(sala.powerups),
     estado,
     comienzaEnMs: estado === "jugando" ? Math.max(0, sala.inicio - ahora) : 0,
     restanteMs: estado === "jugando" ? sala.limite - Math.max(ahora, sala.inicio) : 0
   };
 }
 
-export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerCuerpo, limitar, json, ipDe, exigirUsuario, payloadPartida, parseIntento }) {
+export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerCuerpo, limitar, json, ipDe, exigirUsuario, payloadPartida, parseIntento, usuarioActual }) {
   const jugadorDel = (valor) => {
     if (typeof valor !== "string" || !/^[0-9a-f-]{36}$/.test(valor)) throw new ErrorApi(400, "Jugador no válido.");
     return valor;
@@ -96,8 +99,8 @@ export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerC
       if (await env.DB.prepare("SELECT 1 FROM roscos WHERE codigo = ?").bind(pin).first()) continue;
       try {
         await env.DB.prepare(
-          "INSERT INTO salas (id, pin, rosco_id, usuario_id, titulo, materia, segundos, entradas, creada) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).bind(id, pin, rosco.id, usuario.id, rosco.titulo, rosco.materia, rosco.segundos, rosco.entradas, Date.now()).run();
+          "INSERT INTO salas (id, pin, rosco_id, usuario_id, titulo, materia, segundos, entradas, creada, powerups) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ).bind(id, pin, rosco.id, usuario.id, rosco.titulo, rosco.materia, rosco.segundos, rosco.entradas, Date.now(), rosco.powerups).run();
         return json({ id, pin }, 201);
       } catch (error) {
         if (!String(error).includes("UNIQUE")) throw error;
@@ -146,7 +149,7 @@ export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerC
   if (m && metodo === "GET") {
     const sala = await salaPorPin(m[1]);
     const jugador = request.headers.get("x-jugador") ?? "";
-    const yo = await env.DB.prepare("SELECT seudonimo FROM sala_jugadores WHERE sala_id = ? AND jugador = ?").bind(sala.id, jugador).first();
+    const yo = await env.DB.prepare("SELECT seudonimo,avatar,usuario_id FROM sala_jugadores WHERE sala_id = ? AND jugador = ?").bind(sala.id, jugador).first();
     const tabla = await tablaDeSala(env, sala, jugador);
     return json({
       ...resumenSala(sala),
@@ -160,18 +163,22 @@ export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerC
   m = ruta.match(/^\/sala\/([A-Za-z0-9]{6})\/unirme$/);
   if (m && metodo === "POST") {
     await limitar(env, `sala-ip:${ipDe(request)}`, 600, 600);
-    const { jugador: crudo, seudonimo } = await leerCuerpo(request);
+    const { jugador: crudo, seudonimo, avatar:seleccionado } = await leerCuerpo(request);
+    const usuario=await usuarioActual();
+    const perfil=usuario?await env.DB.prepare('SELECT avatar FROM usuarios WHERE id=?').bind(usuario.id).first():null;
+    const avatar=await avatarValido(env,seleccionado,perfil?.avatar ?? 'voltio');
+    if(!avatar) throw new ErrorApi(422,'Elegí un personaje del catálogo.');
     const jugador = jugadorDel(crudo);
     if (!seudonimoValido(seudonimo)) throw new ErrorApi(400, "Elegí un seudónimo de la lista.");
     const sala = await salaPorPin(m[1]);
-    const existente = await env.DB.prepare("SELECT seudonimo FROM sala_jugadores WHERE sala_id = ? AND jugador = ?").bind(sala.id, jugador).first();
+    const existente = await env.DB.prepare("SELECT seudonimo,avatar,usuario_id FROM sala_jugadores WHERE sala_id = ? AND jugador = ?").bind(sala.id, jugador).first();
     if (existente) return json({ seudonimo: existente.seudonimo });
     if (estadoReal(sala) === "terminada") throw new ErrorApi(409, "Esta sala ya terminó.");
     const { cuenta } = await env.DB.prepare("SELECT COUNT(*) AS cuenta FROM sala_jugadores WHERE sala_id = ?").bind(sala.id).first();
     if (cuenta >= MAX_JUGADORES) throw new ErrorApi(409, "La sala está completa.");
     try {
-      await env.DB.prepare("INSERT INTO sala_jugadores (sala_id, jugador, seudonimo, unido) VALUES (?, ?, ?, ?)")
-        .bind(sala.id, jugador, seudonimo, Date.now()).run();
+      await env.DB.prepare("INSERT INTO sala_jugadores (sala_id, jugador, seudonimo, unido, avatar, usuario_id) VALUES (?, ?, ?, ?, ?, ?)")
+        .bind(sala.id, jugador, seudonimo, Date.now(), avatar, usuario?.id ?? null).run();
     } catch (error) {
       if (String(error).includes("UNIQUE")) throw new ErrorApi(409, "Ese seudónimo ya está en la sala. Elegí otro.");
       throw error;
@@ -184,15 +191,15 @@ export async function manejarSalas({ request, env, ruta, metodo, ErrorApi, leerC
     await limitar(env, `sala-ip:${ipDe(request)}`, 600, 600);
     const jugador = jugadorDel((await leerCuerpo(request)).jugador);
     const sala = await salaPorPin(m[1]);
-    const yo = await env.DB.prepare("SELECT seudonimo FROM sala_jugadores WHERE sala_id = ? AND jugador = ?").bind(sala.id, jugador).first();
+    const yo = await env.DB.prepare("SELECT seudonimo,avatar,usuario_id FROM sala_jugadores WHERE sala_id = ? AND jugador = ?").bind(sala.id, jugador).first();
     if (!yo) throw new ErrorApi(403, "Primero tenés que entrar a la sala.");
     const estado = estadoReal(sala);
     // Las definiciones recién salen al llegar la hora de inicio, para que nadie arranque con ventaja.
     if (estado === "espera" || Date.now() < sala.inicio) throw new ErrorApi(409, "La sala todavía no empezó.", { todaviaNo: true });
     if (estado === "jugando") {
       await env.DB.prepare(
-        "INSERT OR IGNORE INTO intentos (id, rosco_id, jugador, seudonimo, entradas, inicio, limite, sala_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-      ).bind(tokenAleatorio(), sala.rosco_id, jugador, yo.seudonimo, sala.entradas, sala.inicio, sala.limite, sala.id).run();
+        "INSERT OR IGNORE INTO intentos (id, rosco_id, jugador, seudonimo, entradas, inicio, limite, sala_id, powerups, avatar, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      ).bind(tokenAleatorio(), sala.rosco_id, jugador, yo.seudonimo, sala.entradas, sala.inicio, sala.limite, sala.id, sala.powerups, yo.avatar, yo.usuario_id).run();
     }
     const fila = await env.DB.prepare("SELECT * FROM intentos WHERE sala_id = ? AND jugador = ?").bind(sala.id, jugador).first();
     if (!fila) throw new ErrorApi(409, "Esta sala ya terminó.");

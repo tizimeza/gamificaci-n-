@@ -80,4 +80,13 @@ Este repositorio incluye Worker, assets y migraciones. La base local y sus usuar
 
 Pendientes de producto: sala sincronizada en vivo, desafíos con fecha de cierre, informes por alumno y unificación visual del jugador individual con el piloto. Las plantillas son ejemplos para revisión docente.
 
-`0005_personajes_biografias.sql` agrega personalidad, frase y acompañamiento editorial a cada materia. La portada los muestra al pasar, enfocar o tocar una tarjeta. La colección de tres power-ups se presenta como arte en diseño; todavía no tiene efectos en partidas. Ver `art/PERSONAJES-Y-POWERUPS.md`.
+`0005_personajes_biografias.sql` agrega personalidad, frase y acompañamiento editorial a cada materia. La portada los muestra al pasar, enfocar o tocar una tarjeta. La colección de power-ups está integrada en el jugador compartido y en salas en vivo: Tiempo extra, Pista y Segunda oportunidad. La migración `0006_powerups.sql` agrega configuración y consumos persistentes. El docente los habilita desde el editor y puede escribir pistas por letra. Ver `art/PERSONAJES-Y-POWERUPS.md`.
+
+### Avatares y práctica diaria
+
+La migración `0007_avatares_actividad.sql` suma avatar de cuenta, avatares en los rankings y actividad diaria. Con sesión, completar todas las letras y lograr al menos un acierto cumple el objetivo del día. «Mis clases» muestra racha actual, récord, semana e insignias de práctica. El avatar también se elige antes de jugar; los invitados conservan el ranking sin registrar racha de cuenta. Detalles en `art/AVATARES-Y-RACHAS.md`.
+
+
+### Generador de roscos con Gemini
+
+«Mis roscos → Crear con Gemini» abre `/generador`: fuentes curriculares privadas, pedido por contexto, borradores revisables y plan de preparación diaria. Requiere migración `0008_generador.sql`. Copiá `.dev.vars.example` a `.dev.vars` y configurá GEMINI_API_KEY solo como secreto del servidor. El modelo es configurable; la programación diaria viene apagada. Las fuentes se cargan como fragmentos con referencias, sin descarga automática de documentos. Ningún borrador se vuelve jugable sin revisión y guardado. Documentación operativa, límites y pruebas en `art/CONTENIDO-DIARIO-GEMINI.md`. La conexión real a Gemini está pendiente de credencial.

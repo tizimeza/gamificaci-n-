@@ -7,7 +7,7 @@ let catalogoMaterias = [];
 
 const $ = (selector) => document.querySelector(selector);
 const VISTAS = ["lista", "editor"];
-const estado = { editandoId: null, rankingDe: null, roscos: [], rol: null, asignando: null, origen: null };
+const estado = { editandoId: null, rankingDe: null, roscos: [], rol: null, asignando: null, origen: null, generacionId:null };
 const contextoClase = new URLSearchParams(location.search);
 const claseId = /^[0-9a-f-]{36}$/.test(contextoClase.get('clase') || '') ? contextoClase.get('clase') : null;
 if (claseId) $("#volver-clases").href = `clases.html?id=${claseId}`;
@@ -203,7 +203,10 @@ function agregarFila(entrada = {}) {
   alternativas.placeholder = "Otras respuestas válidas";
   alternativas.setAttribute("aria-label", "Otras respuestas válidas, separadas por comas");
   alternativas.value = (entrada.alternativas ?? []).join(", ");
-  textos.append(palabra, alternativas);
+  const pistaLabel = el('label','block text-xs text-slate-300','Pista opcional para el power-up');
+  const pista = el('input','fila-pista form-field block min-h-11 w-full px-3 text-sm');
+  pista.maxLength = 180; pista.placeholder = 'Orientación extra, sin dar la respuesta'; pista.value = entrada.pista ?? '';
+  pistaLabel.append(pista); textos.append(palabra, alternativas, pistaLabel);
 
   const definicion = el("textarea", "fila-definicion form-field block min-h-[6.25rem] w-full resize-y px-3 py-2");
   definicion.placeholder = "Definición, sin nombrar la palabra";
@@ -228,7 +231,12 @@ function actualizarContador() {
   $("#agregar").disabled = cantidad >= LIMITES.entradasMax;
 }
 
-function cargarEditor({ titulo = "", materia = MATERIAS[0], segundos = LIMITES.segundosPorDefecto, entradas = [] }) {
+function cargarEditor({ titulo = "", materia = MATERIAS[0], segundos = LIMITES.segundosPorDefecto, entradas = [], powerups = true, generacionId = null }) {
+  estado.generacionId = generacionId;
+  $('#editor-generacion').classList.toggle('hidden',!generacionId);
+  $('#revision-confirmada').checked=false;
+  $('#editor-evidencias').replaceChildren();
+  $("#campo-powerups").checked = powerups;
   $("#campo-titulo").value = titulo;
   $("#campo-materia").value = materia;
   $("#campo-segundos").value = segundos;
@@ -255,23 +263,30 @@ async function abrirEditor(id = null, base = null) {
       return;
     }
   } else if (base) {
-    cargarEditor({...base, titulo: `Copia de ${base.titulo}`.slice(0, LIMITES.titulo)});
+    cargarEditor({...base, titulo: base.esGenerado?base.titulo:`Copia de ${base.titulo}`.slice(0, LIMITES.titulo)});
   } else {
     cargarEditor({});
     for (let i = 0; i < LIMITES.entradasMin; i += 1) agregarFila();
   }
+  if(estado.generacionId) {
+    try {await cargarEvidencias(estado.generacionId);}catch(error){aviso(error.message,'mal');}
+  }
+  if(base?.esGenerado){$('#editor-titulo').textContent='Revisá tu borrador';$('#editor-origen').textContent='Borrador de Gemini: podés editar todas las preguntas. Se convierte en un rosco jugable solo cuando confirmás la revisión y lo guardás.';}
   mostrar("editor");
   $('#campo-titulo').focus();
 }
 
 function leerEditor() {
   return {
+    generacionId:estado.generacionId,revisionConfirmada:$('#revision-confirmada').checked,
+    powerups: $("#campo-powerups").checked,
     titulo: $("#campo-titulo").value,
     materia: $("#campo-materia").value,
     segundos: Number($("#campo-segundos").value),
     entradas: [...document.querySelectorAll(".fila-rosco")].map((fila) => ({
       letra: fila.querySelector(".fila-letra").value,
       palabra: fila.querySelector(".fila-palabra").value,
+      pista: fila.querySelector(".fila-pista").value,
       definicion: fila.querySelector(".fila-definicion").value,
       alternativas: fila.querySelector(".fila-alternativas").value.split(",")
     }))
@@ -294,6 +309,8 @@ async function guardar(evento) {
   const datos = leerEditor();
   const { errores, rosco } = revisarRosco(datos, MATERIAS);
   if (errores.length) return mostrarErrores(errores);
+  if(datos.generacionId&&!datos.revisionConfirmada)return mostrarErrores([{mensaje:'Confirmá la revisión del borrador antes de guardarlo.',fila:null}]);
+  if(datos.generacionId){rosco.generacionId=datos.generacionId;rosco.revisionConfirmada=datos.revisionConfirmada;}
   const boton = $("#guardar");
   boton.disabled = true;
   try {
@@ -323,6 +340,15 @@ async function guardar(evento) {
   } finally {
     boton.disabled = false;
   }
+}
+
+async function cargarEvidencias(id) {
+  const g=await api(`/generador/borradores/${id}`),box=$('#editor-evidencias');
+  if(g.estado!=='listo')throw new Error('Este borrador todavía no está listo.');
+  box.append(el('p','',`Objetivo: ${g.borrador.objetivo}`));
+  box.append(el('p','',`${g.solicitud.jurisdiccion} · ${g.solicitud.anio}.º · ${g.solicitud.modalidad} · ${g.modelo}`));
+  for(const f of g.fuentes){const p=el('p','',`${f.titulo} · ${f.organismo} · ${f.version} · ${f.referencia}. `);const a=el('a','','Abrir referencia');a.href=f.url;a.target='_blank';a.rel='noopener noreferrer';p.append(a);box.append(p);}
+  for(const r of g.borrador.referencias){const f=g.fuentes.find(f=>f.id===r.fuenteId);box.append(el('h3','',`Letra ${r.letra}`),el('p','',r.explicacion),el('p','',`Evidencia original (${f?.titulo??''}, ${f?.referencia??''}): “${r.evidencia}”`));}
 }
 
 // --- Eventos
@@ -385,9 +411,14 @@ PLANTILLAS.forEach((plantilla, indice) => $("#campo-plantilla").append(new Optio
 
 const { alias, rol } = await api("/sesion").catch(() => ({ alias: null }));
 estado.rol = rol;
+$('#crear-con-ia').classList.toggle('hidden',rol!=='docente');
 if (alias) {
   marcarSesion(alias);
   await abrirLista();
+  const generacion=contextoClase.get('generacion');
+  if(generacion&&/^[-a-f0-9]{36}$/.test(generacion)){
+    try{const g=await api(`/generador/borradores/${generacion}`);if(g.estado!=='listo')throw new Error('El borrador todavía no está listo.');await abrirEditor(null,{...g.borrador.rosco,generacionId:g.id,esGenerado:true});}catch(error){aviso(error.message,'mal');}
+  }
   if (contextoClase.get('nuevo') === '1' && MATERIAS.length) {
     await abrirEditor();
     if (MATERIAS.includes(contextoClase.get('materia'))) $("#campo-materia").value = contextoClase.get('materia');

@@ -64,6 +64,7 @@ export function revisarRosco(datos, materias = MATERIAS) {
     const letra = texto(cruda?.letra).toLocaleUpperCase("es");
     const palabra = texto(cruda?.palabra);
     const definicion = texto(cruda?.definicion);
+    const pista = texto(cruda?.pista);
     const alternativas = (Array.isArray(cruda?.alternativas) ? cruda.alternativas : [])
       .map(texto).filter(Boolean).slice(0, LIMITES.alternativas).map((item) => item.slice(0, LIMITES.palabra));
     const palabraNormal = normalizar(palabra);
@@ -75,9 +76,11 @@ export function revisarRosco(datos, materias = MATERIAS) {
     else if (LETRAS.includes(letra) && !palabraNormal.includes(normalizar(letra))) agregar(`"${palabra}" no contiene la letra ${letra}.`, fila);
     if (definicion.length < 5 || definicion.length > LIMITES.definicion) agregar(`Fila ${fila + 1}: la definición debe tener entre 5 y ${LIMITES.definicion} caracteres.`, fila);
     else if (palabraNormal && ` ${normalizar(definicion)} `.includes(` ${palabraNormal} `)) agregar(`Fila ${fila + 1}: la definición no puede incluir la respuesta.`, fila);
-    return { letra, palabra, definicion, alternativas };
+    if (pista.length > 180) agregar(`Fila ${fila + 1}: la pista debe tener hasta 180 caracteres.`, fila);
+    if (pista && palabraNormal && ` ${normalizar(pista)} `.includes(` ${palabraNormal} `)) agregar(`Fila ${fila + 1}: la pista no puede incluir la respuesta.`, fila);
+    return { letra, palabra, definicion, alternativas, ...(pista ? {pista} : {}) };
   });
 
   entradas.sort((a, b) => LETRAS.indexOf(a.letra) - LETRAS.indexOf(b.letra));
-  return { errores, rosco: { titulo, materia, segundos, entradas } };
+  return { errores, rosco: { titulo, materia, segundos, entradas, powerups: datos?.powerups === true } };
 }

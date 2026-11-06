@@ -1,3 +1,4 @@
+import {montarPerfil} from './perfil.js';
 import {api,el,PERSONAJES,notificar,copiar,prepararMaterias} from './plataforma.js';
 const $=s=>document.querySelector(s),params=new URLSearchParams(location.search);
 let usuario,actual=null,detalle=null;
@@ -29,6 +30,7 @@ async function abrir(id){
 }
 async function iniciar(){
  try{usuario=await api('/sesion');if(!usuario.alias){location.replace(`acceso.html?modo=ingreso${params.get('codigo')?'&rol=alumno&clase='+encodeURIComponent(params.get('codigo')):''}`);return;}
+ montarPerfil($('#mi-progreso')).catch(()=>{});
  MATERIAS=(await prepararMaterias()).map(m=>m.nombre);
  $('#session-alias').textContent=`${usuario.alias} · ${usuario.rol==='docente'?'Profe':'Alumno'}`;const teacher=usuario.rol==='docente';$('#teacher-create').hidden=!teacher;$('#student-join').hidden=teacher;$('#dashboard-help').textContent=teacher?'Cada clase reúne a un curso. Creá desafíos y elegí con qué grupo compartirlos.':'Acá están tus clases y los desafíos que comparten tus profes.';
  MATERIAS.forEach(m=>$('#class-subject').append(new Option(m,m)));if(MATERIAS.includes(params.get('materia')))$('#class-subject').value=params.get('materia');$('#class-code').value=/^[A-Z0-9]{6}$/i.test(params.get('codigo')||'')?params.get('codigo').toUpperCase():'';

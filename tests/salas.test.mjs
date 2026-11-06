@@ -176,3 +176,36 @@ test("una partida de sala no se mezcla con jugar el rosco por su código", async
   const suelta = await ana.api(`/r/${rosco.codigo}/intentos`, { metodo: "POST", cuerpo: { jugador: ana.id, seudonimo: "Puma Veloz 42" } });
   assert.notEqual(suelta.datos.token, enSala.datos.token);
 });
+
+test('power-ups en vivo: tiempo compartido una sola vez y pistas individuales', async () => {
+  const host=cliente();
+  await host('/registro',{metodo:'POST',cuerpo:{alias:unico(),clave:'clave-segura-prueba',rol:'docente'}});
+  const creado=await host('/roscos',{metodo:'POST',cuerpo:{...ROSCO,powerups:true,entradas:ROSCO.entradas.map((e,i)=>({...e,...(i===0?{pista:'Pensá en las instrucciones de una receta.'}:{})}))}});
+  assert.equal(creado.estado,201);
+  const sala=(await host('/salas',{metodo:'POST',cuerpo:{roscoId:creado.datos.id}})).datos;
+  const a=cliente(),b=cliente(),ja=crypto.randomUUID(),jb=crypto.randomUUID();
+  assert.equal((await a('/registro',{metodo:'POST',cuerpo:{alias:unico(),clave:'clave-alumno-prueba',rol:'alumno'}})).estado,201);
+  for(const [api,jugador,seudonimo] of [[a,ja,'Puma Veloz 42'],[b,jb,'Lobo Sabio 15']]) {
+    assert.equal((await api(`/sala/${sala.pin}/unirme`,{metodo:'POST',cuerpo:{jugador,seudonimo,avatar:jugador===ja?'prismo':'broti'}})).estado,201);
+  }
+  await host(`/salas/${sala.id}/empezar`,{metodo:'POST',cuerpo:{}});await pausa(CUENTA_MS);
+  const abrir=(api,jugador)=>api(`/sala/${sala.pin}/partida`,{metodo:'POST',cuerpo:{jugador}});
+  const pa=(await abrir(a,ja)).datos,pb=(await abrir(b,jb)).datos;
+  assert.equal(pa.powerups.habilitados,true);
+  assert.equal(pa.avatar,'prismo');assert.equal(pb.avatar,'broti');
+  const tabla=(await host(`/salas/${sala.id}`)).datos.jugadores;
+  assert.equal(tabla.find(p=>p.seudonimo==='Puma Veloz 42').avatar,'prismo');
+  const usar=(api,token,tipo,pos)=>api(`/intentos/${token}/powerups`,{metodo:'POST',cuerpo:{tipo,pos}});
+  const usos=await Promise.all([usar(a,pa.token,'tiempo'),usar(b,pb.token,'tiempo')]);
+  assert.equal(usos.filter(r=>r.estado===201).length,1);
+  const despues=(await abrir(b,jb)).datos;
+  assert.ok(despues.restanteMs>pb.restanteMs+12000);
+  assert.ok(Object.hasOwn(despues.powerups.usados,'tiempo'));
+  assert.equal((await usar(a,pa.token,'pista',0)).estado,201);
+  assert.equal((await usar(b,pb.token,'pista',0)).estado,201);
+  for(let pos=0;pos<5;pos++) await a(`/intentos/${pa.token}/responder`,{metodo:'POST',cuerpo:{pos,respuesta:ROSCO.entradas[pos].palabra}});
+  assert.equal((await a('/perfil')).datos.actividad.hoyCompletado,true);
+  assert.equal((await host(`/salas/${sala.id}/terminar`,{metodo:'POST',cuerpo:{}})).estado,200);
+  assert.equal((await host(`/salas/${sala.id}`)).datos.estado,'terminada');
+  assert.equal((await usar(a,pa.token,'reintento',0)).estado,409);
+});

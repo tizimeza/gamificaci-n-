@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/assets/personajes.css">
   <link rel="stylesheet" href="/assets/biblioteca.css">
   <script type="module" src="/assets/js/panel.js"></script>
+  <link rel="stylesheet" href="/assets/generador.css">
 </head>
 <body class="sitio">
   <header class="topbar">
@@ -27,7 +28,7 @@
     <section id="vista-lista" class="hidden">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div><p class="eyebrow">Tu biblioteca de desafíos</p><h1 class="display-font mt-1 text-2xl font-black">Mis roscos</h1><p class="library-intro">Volvé a jugarlos, usalos en otras clases o creá una versión nueva a partir de sus preguntas.</p></div>
-        <button id="nuevo" class="primary-btn px-5 text-sm"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Nuevo rosco</button>
+        <a id="crear-con-ia" href="/generador" class="secondary-btn hidden px-5 text-sm">Crear con Gemini</a><button id="nuevo" class="primary-btn px-5 text-sm"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Nuevo rosco</button>
       </div>
       <div id="biblioteca-filtros" class="library-filters">
         <label>Buscar en mi biblioteca<input id="biblioteca-buscar" type="search" class="form-field" placeholder="Título o materia…" maxlength="100"></label>
@@ -50,7 +51,13 @@
         <button id="editor-volver" class="secondary-btn px-4 text-sm">Volver</button>
       </div>
       <p id="editor-origen" class="library-copy-note hidden" role="status"></p>
+      <section id="editor-generacion" class="generator-references hidden" aria-label="Revisión del borrador de Gemini">
+        <p>Gemini preparó este borrador. Las citas se comprobaron contra tus fragmentos; revisá que cada pregunta y respuesta sea correcta y adecuada para tu curso.</p>
+        <details><summary>Ver objetivo, fuentes y evidencias originales</summary><div id="editor-evidencias"></div></details>
+        <label><input id="revision-confirmada" type="checkbox"> Revisé las preguntas, respuestas, pistas y referencias de este rosco antes de compartirlo.</label>
+      </section>
       <form id="editor" class="mt-5 space-y-5" novalidate>
+        <label class="glass block rounded-2xl p-4 text-sm"><input id="campo-powerups" type="checkbox" checked> Habilitar power-ups: +15 segundos, una pista y un reintento por partida. En vivo, el tiempo extra es común y se usa una sola vez por sala.</label>
         <div class="glass grid gap-4 rounded-3xl p-5 md:grid-cols-[2fr_1fr_1fr]">
           <label class="block text-sm font-bold text-slate-300">Título
             <input id="campo-titulo" class="form-field mt-1 block min-h-11 w-full px-3" maxlength="80" placeholder="Ej. Revolución de Mayo">

@@ -3,6 +3,12 @@
   "name": "roscolab",
   "main": "worker/index.js",
   "compatibility_date": "2026-10-01",
+  "vars": {
+    "GEMINI_MODEL": "gemini-3.8-flash",
+    "GENERACION_DIARIA": "false",
+    "GENERADOR_LIMITE_DIARIO": "20"
+  },
+  "triggers": { "crons": ["0 8 * * *"] },
   "assets": {
     "directory": "public",
     "binding": "ASSETS",

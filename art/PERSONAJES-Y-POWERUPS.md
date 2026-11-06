@@ -14,15 +14,27 @@ Tres imágenes generadas con la herramienta integrada de imágenes, una llamada 
 - Pista: bombita dorada con lupa turquesa.
 - Segunda oportunidad: flecha de regreso turquesa con corazón dorado.
 
-Se muestran como colección **En diseño** en la portada. No alteran las reglas ni conceden efectos durante las partidas.
+Los tres power-ups funcionan en el jugador compartido y en salas en vivo. La portada ya no muestra «En diseño».
 
-## Próxima implementación propuesta
+## Mecánica implementada (2026-11-06)
 
-Ayudas opcionales elegidas por el docente antes de jugar. Como punto de partida para probar: una carga por tipo, Tiempo extra suma 15 segundos, Pista revela un texto escrito por el profe y Segunda oportunidad reabre una respuesta errada sin conservar puntos anteriores. Todas las acciones deberían validarse en servidor, consumirse una sola vez y quedar registradas en el intento. En sala en vivo, el anfitrión debe controlar si las habilita. Son decisiones de diseño propuestas, todavía sin implementación ni validación de balance.
+El editor ofrece un interruptor de ayudas para cada rosco, activo por defecto en la creación desde la interfaz. Puede escribirse una pista opcional por letra (hasta 180 caracteres, sin la respuesta). Las copias preservan configuración y pistas.
+
+- **Tiempo extra:** agrega 15 segundos, una sola vez por intento individual. En vivo suma 15 segundos al reloj de toda la sala, una sola vez entre todos los participantes; los intentos nuevos reciben el límite extendido.
+- **Pista:** una carga por jugador; revela la orientación del docente para una letra pendiente. El botón queda deshabilitado donde no hay pista. No consume una carga si la letra no admite la ayuda.
+- **Segunda oportunidad:** una carga por jugador; permite elegir una letra incorrecta y responderla de nuevo. Elimina el error anterior y el puntaje se recalcula al responder. Si al completar la rueda quedan errores y la ayuda sigue disponible, se ofrece reintentar o terminar ahora, siempre dentro del reloj.
+
+La migración `0006_powerups.sql` guarda configuración en el rosco y una copia en cada intento/sala. Habilita las ayudas en los roscos existentes y conserva las reglas de los intentos y salas que ya estaban en curso. La API de creación sin el campo `powerups:true` mantiene el comportamiento sin ayudas para clientes anteriores.
+
+El registro `powerup_usos` tiene una clave única por intento y tipo y un índice único para Tiempo extra en vivo. Condiciones SQL comprueban inicio, reloj, fin, disponibilidad y respuesta. Triggers aplican el efecto, eliminan la respuesta errada y actualizan el puntaje en la misma transacción. El servidor revela únicamente las pistas consumidas, no todas las pistas ni las respuestas. Recargar conserva cargas y pistas ya abiertas. El anfitrión conserva el cierre explícito de la sala.
+
+Endpoints: `POST /api/intentos/:token/powerups` con `{tipo,pos}` (`tiempo`, `pista`, `reintento`); `GET /api/intentos/:token` para sincronizar estado mediante el token privado del intento.
 
 ## Validación
 
-Migración aplicada en las bases locales normal y de QA. Prueba de catálogo aprobada: once opciones con biografía y presentación consistente al crear roscos. Recorrido de navegador: abrir PRISMO, cerrar con Escape, navegar a MUNDI con Tab, abrir/cerrar LETI con clic. Pantalla de 390 px sin desborde; tres imágenes de ayudas cargadas. Compilación CSS y despliegue en seco aprobados. Sin publicación. Capturas en `art/previews/personajes/`.
+25 pruebas de API y salas aprobadas, incluyendo consumo simultáneo, reloj compartido, pistas individuales, copia/configuración, persistencia, última letra errada, puntaje corregido y bloqueo tras cierre. La prueba de cierre de sala usa y comprueba el endpoint real `/terminar`.
+
+Recorrido visible: guardar un rosco con pista en el editor, comenzar, usar las tres ayudas y cerrar 5/5 con cero errores; reingresar después de recargar conserva la pista consumida. Diseño sin desborde a 390 px y botones adaptables. Compilación CSS y empaquetado en seco aprobados. Migraciones aplicadas a las bases locales de desarrollo y QA; sin publicación. El piloto offline de Matemática sigue separado del jugador compartido.
 
 ## Prompts finales (herramienta integrada)
 

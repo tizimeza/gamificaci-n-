@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071226"><title>Crear con Gemini | RoscoLab</title><link rel="stylesheet" href="/assets/app.css"><link rel="stylesheet" href="/assets/generador.css"><script type="module" src="/assets/js/generador.js"></script></head>
+<body class="sitio"><header class="topbar"><nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4" aria-label="Navegación"><a class="display-font text-lg font-black" href="/">RoscoLab</a><a href="/panel" class="text-sm font-bold text-cyan-200 underline">Mis roscos</a></nav></header>
+<main class="mx-auto max-w-5xl px-4 py-7">
+  <p class="eyebrow">Tu contenido. Un nuevo punto de partida.</p><h1 class="display-font mt-2 text-3xl font-black">Del programa al rosco.</h1><p class="generator-intro">Elegí qué querés trabajar y aportá fragmentos de tus fuentes. Gemini prepara preguntas con pistas y referencias para que las revises antes de compartirlas.</p>
+  <p id="motor-estado" class="generator-status" role="status">Comprobando el motor…</p>
+  <section class="glass generator-section" aria-labelledby="pedido-titulo"><h2 id="pedido-titulo">1. Definí tu desafío</h2>
+    <form id="generar-form"><div class="generator-fields">
+      <label>Materia<select id="g-materia" class="form-field" required></select></label>
+      <label>Jurisdicción<input id="g-jurisdiccion" class="form-field" value="Nacional (NAP)" minlength="3" maxlength="80" required></label>
+      <label>Año de secundaria<select id="g-anio" class="form-field"><option value="1">1.º</option><option value="2">2.º</option><option value="3">3.º</option><option value="4">4.º</option><option value="5">5.º</option><option value="6">6.º</option><option value="7">7.º</option></select></label>
+      <label>Modalidad<select id="g-modalidad" class="form-field"><option>General</option><option>Técnica</option></select></label>
+      <label class="generator-wide">Tema<input id="g-tema" class="form-field" placeholder="Ej. Figuras planas y sus propiedades" minlength="3" maxlength="120" required></label>
+      <label>Dificultad<select id="g-dificultad" class="form-field"><option>Inicial</option><option selected>Intermedia</option><option>Avanzada</option></select></label>
+      <label>Cantidad de letras<input id="g-cantidad" class="form-field" type="number" value="12" min="5" max="12" step="1" required></label>
+    </div>
+    <h3 class="generator-subheading">Elegí de una a tres fuentes</h3><p class="generator-help">Solo aparecen las fuentes de la misma materia, jurisdicción, año y modalidad. El currículo marca qué trabajar; agregá también material que permita justificar las respuestas.</p><div id="g-fuentes" class="generator-sources"></div>
+    <p id="g-error" class="generator-error" role="alert"></p><button id="g-generar" class="primary-btn px-5" type="submit" disabled>Generar borrador con Gemini</button>
+    <div class="generator-plan"><label><input id="g-diario" type="checkbox"> Preparar un borrador cada día con esta configuración</label><button id="g-plan-guardar" class="secondary-btn px-4 text-sm" type="button">Guardar plan diario</button><p id="g-plan-estado" class="generator-help" role="status"></p></div>
+    </form>
+  </section>
+  <details class="glass generator-section" id="nueva-fuente"><summary>2. Agregá una fuente a tu biblioteca</summary><p class="generator-help">Se guarda con el contexto elegido arriba. Pegá un fragmento curricular o material educativo sin datos de alumnos. La URL es una referencia: el motor no descarga ni verifica automáticamente su contenido.</p>
+    <form id="fuente-form"><div class="generator-fields">
+      <label class="generator-wide">Título del documento<input id="f-titulo" class="form-field" minlength="5" maxlength="160" required></label>
+      <label>Organismo o autor<input id="f-organismo" class="form-field" minlength="3" maxlength="120" placeholder="Ej. Ministerio de Educación" required></label>
+      <label>Versión o fecha<input id="f-version" class="form-field" minlength="2" maxlength="80" placeholder="Ej. Edición 2026" required></label>
+      <label>Página o sección<input id="f-referencia" class="form-field" minlength="2" maxlength="120" placeholder="Ej. pp. 30–32 · Geometría" required></label>
+      <label>URL de referencia<input id="f-url" class="form-field" type="url" maxlength="600" placeholder="https://…" required></label>
+      <label class="generator-wide">Fragmento del documento<textarea id="f-texto" class="form-field" rows="8" minlength="100" maxlength="8000" required></textarea></label>
+    </div><p id="f-error" class="generator-error" role="alert"></p><button id="f-guardar" class="secondary-btn px-5" type="submit">Guardar fuente</button></form>
+  </details>
+  <section class="generator-section" aria-labelledby="borradores-titulo"><div class="flex flex-wrap items-center justify-between gap-3"><h2 id="borradores-titulo">3. Tus borradores</h2><button id="g-refrescar" class="secondary-btn px-4 text-sm">Actualizar</button></div><p class="generator-help">Son privados. El motor no los comparte con alumnos ni los asigna a clases. Abrilos en el editor, revisá las referencias y guardalos como un rosco nuevo.</p><div id="g-borradores" class="generator-drafts"></div></section>
+</main></body></html>

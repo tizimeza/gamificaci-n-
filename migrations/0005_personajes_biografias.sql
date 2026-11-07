@@ -1,0 +1,14 @@
+-- Acompañamiento editorial; no concede ayudas en la partida.
+ALTER TABLE materias ADD COLUMN personalidad TEXT NOT NULL DEFAULT '';
+ALTER TABLE materias ADD COLUMN ayuda TEXT NOT NULL DEFAULT '';
+ALTER TABLE materias ADD COLUMN frase TEXT NOT NULL DEFAULT '';
+UPDATE materias SET personalidad='Curioso, inquieto y fan de desarmar para entender.', ayuda='Te invita a conectar circuitos, inventos y tecnología con problemas de todos los días.', frase='¿Y si probamos otra conexión?' WHERE id IN ('tecnologia','otra');
+UPDATE materias SET personalidad='Ingeniosa, lectora voraz y cazadora de dobles sentidos.', ayuda='Te acompaña a descubrir pistas en las palabras, interpretar textos y defender tus ideas.', frase='Cada palabra abre una puerta.' WHERE id='lengua';
+UPDATE materias SET personalidad='Ve patrones en todas partes y nunca le teme a un problema.', ayuda='Te invita a buscar estrategias, relacionar formas y explicar cómo llegaste al resultado.', frase='Si no sale, cambiamos el ángulo.' WHERE id='matematica';
+UPDATE materias SET personalidad='Explorador sin pausa, siempre con una nueva pregunta en el mapa.', ayuda='Te acompaña a relacionar territorios, ambientes y sociedades para entender el mundo.', frase='Todo lugar tiene algo que contar.' WHERE id='geografia';
+UPDATE materias SET personalidad='Detective del tiempo: escucha versiones y sigue las huellas.', ayuda='Te invita a conectar causas y consecuencias, comparar fuentes y preguntar quién cuenta la historia.', frase='El pasado también tiene preguntas.' WHERE id='historia';
+UPDATE materias SET personalidad='Tiene oído para los detalles y ritmo hasta cuando piensa.', ayuda='Te acompaña a reconocer sonidos, explorar ritmos y encontrar conexiones entre música y cultura.', frase='Escuchá: ahí hay una pista.' WHERE id='musica';
+UPDATE materias SET personalidad='Observador, paciente y fascinado por todo lo que está vivo.', ayuda='Te invita a explorar células, organismos y ecosistemas, y a descubrir cómo se relacionan.', frase='Lo pequeño también cambia todo.' WHERE id='biologia';
+UPDATE materias SET personalidad='Expresivo, experimental y feliz de salirse del margen.', ayuda='Te acompaña a leer imágenes, explorar materiales y darle forma a tus propias ideas.', frase='Probá otro trazo.' WHERE id='artistica';
+UPDATE materias SET personalidad='Inquieto y preciso: ve un experimento en cada movimiento.', ayuda='Te invita a relacionar fuerzas, energía y movimiento con situaciones que podés observar.', frase='¿Qué pasa si cambiamos una variable?' WHERE id='fisica';
+UPDATE materias SET personalidad='Entusiasta de las mezclas y detective de transformaciones.', ayuda='Te acompaña a reconocer sustancias, relacionar propiedades y explicar qué cambia en una reacción.', frase='Toda transformación deja pistas.' WHERE id='quimica';

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071226">
+  <title>Sala en vivo | RoscoLab</title>
+  <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/personajes.css">
+  <script type="module" src="/assets/js/sala.js"></script>
+</head>
+<body class="sitio">
+  <header class="topbar">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <a href="panel.html" class="display-font text-lg font-black">RoscoLab</a>
+      <div id="reloj-caja" class="hidden items-center gap-2 rounded-xl bg-amber-300/10 px-3 py-1.5">
+        <i class="fa-regular fa-clock text-amber-300" aria-hidden="true"></i>
+        <span id="reloj" class="display-font text-2xl font-black tabular-nums" role="timer"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <div id="sala-personaje" class="subject-result"></div>
+    <p id="cargando" class="text-center text-sm font-semibold text-slate-300" role="status">Preparando la sala…</p>
+    <p id="error" class="hidden text-center text-sm font-bold text-rose-300" role="alert"></p>
+
+    <section id="vista-espera" class="hidden space-y-5">
+      <div class="glass rounded-3xl p-6 text-center sm:p-10">
+        <p id="espera-materia" class="eyebrow"></p>
+        <h1 id="espera-titulo" class="display-font mt-1 break-words text-2xl font-black sm:text-3xl"></h1>
+        <p class="mt-5 text-sm font-semibold text-slate-300">Entrá a <span id="sitio" class="font-black text-white"></span> y escribí el código</p>
+        <p id="pin" class="display-font mt-2 break-all text-5xl font-black tracking-widest text-amber-200 sm:text-8xl"></p>
+        <div class="mt-5 flex flex-wrap justify-center gap-2">
+          <button id="copiar" class="secondary-btn px-5 text-sm"><i class="fa-solid fa-copy mr-2" aria-hidden="true"></i>Copiar enlace</button>
+          <button id="empezar" class="primary-btn px-8 text-base" disabled>Empezar</button>
+        </div>
+        <p id="ayuda-empezar" class="mt-3 text-sm text-slate-300" role="status"></p>
+      </div>
+      <div class="glass rounded-3xl p-5">
+        <h2 class="display-font text-lg font-extrabold">En la sala <span id="cantidad" class="text-slate-400"></span></h2>
+        <ul id="jugadores" class="mt-3 flex flex-wrap gap-2"></ul>
+      </div>
+    </section>
+
+    <section id="vista-cuenta" class="hidden py-16 text-center">
+      <p class="eyebrow">Empieza en</p>
+      <p id="cuenta" class="display-font mt-3 text-9xl font-black text-cyan-200" aria-live="assertive"></p>
+    </section>
+
+    <section id="vista-juego" class="hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="eyebrow">En vivo · código <span id="juego-pin"></span></p>
+          <h1 id="juego-titulo" class="display-font mt-1 break-words text-2xl font-black"></h1>
+          <p id="juego-avance" class="mt-1 text-sm font-semibold text-slate-300"></p>
+        </div>
+        <button id="terminar" class="danger-btn px-5 text-sm">Terminar sala</button>
+      </div>
+      <ol id="marcador" class="glass space-y-2 rounded-3xl p-4 sm:p-5"></ol>
+    </section>
+
+    <section id="vista-final" class="hidden space-y-5">
+      <div class="glass rounded-3xl p-6 text-center sm:p-8">
+        <p class="eyebrow">Resultado final</p>
+        <h1 id="final-titulo" class="display-font mt-1 break-words text-2xl font-black"></h1>
+        <ol id="podio" class="mx-auto mt-6 grid max-w-3xl items-end gap-3 sm:grid-cols-3"></ol>
+        <div class="mt-6 flex flex-wrap justify-center gap-2">
+          <button id="otra-sala" class="primary-btn px-5 text-sm">Abrir otra sala</button>
+          <a href="panel.html" class="secondary-btn flex items-center px-5 text-sm">Volver a mis roscos</a>
+        </div>
+      </div>
+      <div id="resto-caja" class="glass hidden rounded-3xl p-5">
+        <h2 class="display-font text-lg font-extrabold">Tabla completa</h2>
+        <div id="resto" class="mt-2"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="dialogo-terminar" class="dialogo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 class="display-font text-xl font-black">¿Terminar la sala?</h2>
+      <p class="mt-2 text-sm text-slate-300">Se corta la partida para todos y se muestran los resultados.</p>
+      <div class="mt-5 flex justify-end gap-2">
+        <button id="terminar-no" class="secondary-btn px-4 text-sm">Seguir jugando</button>
+        <button id="terminar-si" class="danger-btn px-4 text-sm">Sí, terminar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="avisos" class="pointer-events-none fixed bottom-4 right-4 z-50 flex max-w-[calc(100%-2rem)] flex-col items-end gap-2" aria-live="polite"></div>
+</body>
+</html>

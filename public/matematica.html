@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#09152d">
+  <title>Rosko · Matemática con PRISMO</title>
+  <link rel="stylesheet" href="assets/matematica.css">
+  <script src="assets/js/matematica.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Ir al contenido</a>
+  <header class="site-header">
+    <a class="brand" href="matematica.html" aria-label="Rosko, inicio de Matemática"><span class="brand-mark" aria-hidden="true">r.</span>rosko<span class="brand-dot">✦</span></a>
+    <span class="subject-label">Matemática <span>con PRISMO</span></span>
+    <button id="sound" class="quiet" type="button" aria-pressed="false">Sonido: apagado</button>
+  </header>
+  <main id="main">
+    <section id="setup-screen" aria-labelledby="setup-heading">
+      <div class="hero">
+        <div class="hero-copy"><p class="section-note">Tu clase. Su próximo desafío.</p><h1 id="setup-heading" tabindex="-1">Las ideas<br>entran en juego.</h1><p>Armá tu rosco de Matemática, elegí los equipos y dejá que empiece la conversación.</p><a class="primary hero-cta" href="#editor">Preparar mi rosco <span aria-hidden="true">↗</span></a><p class="hero-foot">Para secundaria · En equipo · A tu ritmo</p></div>
+        <div class="hero-art"><div class="geometry geo-square" aria-hidden="true"></div><div class="geometry geo-circle" aria-hidden="true"></div><img src="art/personajes/prismo-base.png" alt="PRISMO, un cubo con anteojos y figuras geométricas sobre la mano" width="1024" height="1024" fetchpriority="high"><div class="character-tag"><strong>PRISMO</strong><span>Siempre hay otra forma de pensarlo.</span></div></div>
+      </div>
+      <div id="resume-banner" class="resume-banner" hidden><div><strong>Hay un desafío en marcha.</strong><p>Podés retomar el rosco donde lo dejaron.</p></div><button id="resume" class="primary" type="button">Continuar partida</button></div>
+      <form id="setup-form" class="editor" novalidate>
+        <div id="editor" class="editor-heading"><div><p class="section-note">El desafío lo ponés vos</p><h2>Prepará la cancha.</h2></div><span id="question-count" class="count-tag"></span></div>
+        <div class="setup-fields">
+          <label class="wide">Nombre del rosco<input id="rosco-title" maxlength="70" value="Matemática en juego" required></label>
+          <label>Equipo cian<input id="team-a" maxlength="28" value="Los Radicales" required></label>
+          <label>Equipo coral<input id="team-b" maxlength="28" value="Las Potencias" required></label>
+          <label>Tiempo por pregunta<select id="duration"><option value="20">20 segundos</option><option value="30" selected>30 segundos</option><option value="45">45 segundos</option><option value="60">60 segundos</option></select></label>
+        </div>
+        <div class="question-heading"><div><h3>Preguntas del rosco</h3><p>Editá los ejemplos o escribí los tuyos. Una letra por pregunta, entre 3 y 26 preguntas.</p></div><button id="answers-toggle" type="button" class="quiet" aria-pressed="true">Ocultar respuestas</button></div>
+        <p class="editor-tip">El equipo responde en voz alta y el profe registra la respuesta. Se aceptan tildes y mayúsculas; podés agregar variantes separadas por punto y coma.</p>
+        <div id="questions"></div>
+        <div class="editor-tools"><button id="add-question" class="secondary" type="button">+ Agregar pregunta</button><button id="restore-examples" class="quiet" type="button">Volver a los ejemplos</button></div>
+        <p id="setup-error" class="error-message" role="alert"></p>
+        <div class="launch-bar"><p>Un punto por acierto. Los errores no restan.<br><span>El turno cambia al pasar, errar o avanzar.</span></p><div><button id="preview" type="button" class="secondary">Vista previa</button><button type="submit" class="primary">Jugar este rosco <span aria-hidden="true">↗</span></button></div></div>
+      </form>
+      <footer class="setup-footer"><span>Hecho para pensar juntos.</span><a href="aula.html">Abrir el Rosco Eléctrico</a></footer>
+    </section>
+
+    <section id="game-screen" hidden aria-labelledby="game-title">
+      <div class="game-heading"><div><p class="section-note">El desafío está en marcha</p><h1 id="game-title" tabindex="-1"></h1></div><button id="back-editor" class="quiet" type="button">Volver al editor</button></div>
+      <div class="scoreboard"><div id="score-a" class="team-score cyan-team"><span></span><strong>0</strong></div><span class="versus">vs.</span><div id="score-b" class="team-score coral-team"><span></span><strong>0</strong></div></div>
+      <div class="arena"><section class="wheel-panel" aria-label="Progreso del rosco"><div id="wheel" class="wheel"><div class="wheel-track" aria-hidden="true"></div><div class="mascot"><img id="game-prismo" src="art/personajes/prismo-base.png" alt="PRISMO acompaña el desafío" width="1024" height="1024"><span id="mascot-caption">Vamos de a una.</span></div><div id="nodes"></div><span id="orbit-marker" class="orbit-marker" aria-hidden="true">◆</span></div><div class="wheel-progress"><strong id="progress-text"></strong><div class="progress-track"><div id="progress-fill"></div></div></div><p class="legend"><span>○ Pendiente</span><span>↻ Pasada</span><span>✓ Acierto</span><span>× Resuelta</span></p></section>
+        <section class="challenge" aria-labelledby="question-title"><div class="challenge-top"><span id="turn-label" class="turn-label"></span><button id="timer" class="timer" type="button" aria-label="Iniciar cronómetro"><span id="timer-value">30</span><small id="timer-action">Iniciar</small></button></div><div class="question-body"><p id="letter-rule" class="letter-rule"></p><h2 id="question-title" tabindex="-1"></h2></div>
+          <form id="answer-form"><label for="answer">Respuesta del equipo</label><div class="answer-entry"><input id="answer" maxlength="120" autocomplete="off" placeholder="Escribí la palabra…" required><button class="primary" type="submit">Comprobar</button></div></form>
+          <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+          <div class="game-actions"><button id="pass" class="secondary" type="button">↻ Pasapalabra</button><button id="reveal" class="quiet" type="button">Ver respuesta</button><button id="next" class="primary" type="button" hidden>Siguiente letra ↗</button></div><p class="game-tip">El profe controla el ritmo. Activá el reloj cuando el equipo esté listo.</p>
+        </section></div>
+      <div class="game-bottom"><span id="save-note">La partida se guarda en este navegador.</span><button id="finish" class="quiet" type="button">Cerrar partida</button></div>
+    </section>
+
+    <section id="result-screen" class="results" hidden aria-labelledby="result-title"><div class="result-art"><span class="result-spark spark-one" aria-hidden="true">✦</span><img src="art/personajes/prismo-base.png" alt="PRISMO celebra el desafío" width="1024" height="1024"><span class="result-spark spark-two" aria-hidden="true">✦</span></div><p id="result-kicker" class="section-note">El rosco llegó a la meta</p><h1 id="result-title" tabindex="-1"></h1><p id="result-subtitle"></p><div id="result-scores" class="result-scores"></div><div class="result-stats"><div><strong id="result-correct"></strong><span>Aciertos del curso</span></div><div><strong id="result-attempts"></strong><span>Respuestas intentadas</span></div><div><strong id="result-pending"></strong><span>Para seguir practicando</span></div></div><p class="reflection">Antes de irse: ¿qué respuesta les hizo cambiar de idea?</p><div class="result-actions"><button id="play-again" class="primary" type="button">Jugar otra vez</button><button id="edit-again" class="secondary" type="button">Crear otro desafío</button></div></section>
+  </main>
+  <dialog id="preview-dialog" aria-labelledby="preview-title"><div class="dialog-heading"><h2 id="preview-title">Así se verá tu desafío</h2><button id="close-preview" class="quiet" type="button">Cerrar</button></div><p id="preview-rule" class="letter-rule"></p><p id="preview-question" class="preview-question"></p><p>Las respuestas quedan en el editor del profe. Durante la partida se muestran al resolver o revelar.</p><button id="preview-start" class="primary" type="button">Listo, jugar</button></dialog>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title"></h2><p id="confirm-detail"></p><div class="dialog-actions"><button id="confirm-cancel" class="secondary" type="button">Cancelar</button><button id="confirm-accept" class="primary" type="button">Continuar</button></div></dialog>
+  <div id="notice" class="notice" role="status" hidden></div>
+</body>
+</html>

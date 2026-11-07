@@ -4,12 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071226">
-  <title>El Rosco Eléctrico | Pasapalabra</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <title>Modo aula | RoscoLab</title>
   <style>
     :root {
       color-scheme: dark;
@@ -44,7 +39,7 @@
       backdrop-filter: blur(18px);
     }
     .topbar { background: rgba(5, 15, 31, .75); border-bottom: 1px solid var(--line); backdrop-filter: blur(18px); }
-    .eyebrow { color: #91a6c8; font-size: .68rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .eyebrow { color: #91a6c8; font-size: .75rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
     .score-card { border: 1px solid var(--line); background: rgba(255,255,255,.045); }
     .score-btn, .icon-btn, .secondary-btn, .primary-btn {
       border: 1px solid var(--line); transition: transform .18s ease, background .18s ease, border-color .18s ease;
@@ -89,12 +84,13 @@
     }
     .center-letter { font-family: "Montserrat", sans-serif; font-weight: 900; font-size: clamp(2.4rem, 8vw, 4.1rem); line-height: 1; color: #fff; text-shadow: 0 0 24px rgba(72, 194, 255, .5); }
     .center-word { max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #b7c8e3; font-size: clamp(.55rem, 1.8vw, .75rem); font-weight: 700; margin-top: .45rem; }
-    .center-progress { color: #6f89ad; font-size: .64rem; font-weight: 700; margin-top: .55rem; }
+    .center-progress { color: #9aacc8; font-size: .72rem; font-weight: 700; margin-top: .55rem; }
     .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .step { display: flex; align-items: center; gap: .55rem; color: #8195b4; font-size: .69rem; font-weight: 700; }
+    .step { display: flex; align-items: center; gap: .55rem; color: #9aacc8; font-size: .8rem; font-weight: 700; }
     .step-num { display: grid; place-items: center; width: 23px; height: 23px; flex: 0 0 23px; border-radius: 50%; border: 1px solid rgba(155,184,225,.2); background: rgba(255,255,255,.04); font-size: .67rem; }
     .step.current { color: #ffe09a; }
     .step.current .step-num { border-color: rgba(255,203,85,.65); background: rgba(255,203,85,.17); color: #ffda84; }
+    #result-box { scroll-margin-top: 110px; }
     .claim-card { min-height: 198px; }
     .answer-box { animation: reveal-in .35s ease both; }
     @keyframes reveal-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -107,13 +103,16 @@
     @media (max-width: 640px) {
       .rosco-wrap { width: min(100%, 360px); }
       .claim-card { min-height: 176px; }
-      .step { font-size: .59rem; gap: .35rem; }
+      .step { font-size: .68rem; gap: .35rem; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
   </style>
+  <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="assets/app.css">
 </head>
 <body>
-  <header class="topbar sticky top-0 z-30">
+  <aside style="padding:12px 20px;background:#122542;border-bottom:1px solid #48e5ed44;text-align:center;font-size:14px"><a href="matematica.html" style="color:#ffdc55;font-weight:800;text-decoration:underline;text-underline-offset:4px">Nuevo: probá Matemática con PRISMO ↗</a></aside>
+  <header class="topbar top-0 z-30 sm:sticky">
     <div class="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
       <div class="flex min-w-[220px] items-center gap-3">
         <div class="grid h-11 w-11 place-items-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-200 shadow-lg shadow-cyan-950/30">
@@ -122,24 +121,24 @@
         <div>
           <p class="eyebrow">Juego 6 · Electricidad</p>
           <h1 class="display-font text-base font-extrabold tracking-tight text-white sm:text-lg">El Rosco Eléctrico</h1>
-          <p class="text-[11px] font-semibold text-slate-400">Pasapalabra · Adivina la palabra</p>
+          <p class="text-xs font-semibold text-slate-400">Adivina la palabra</p>
         </div>
       </div>
 
       <div class="order-3 flex w-full items-center justify-center gap-2 sm:order-2 sm:w-auto sm:gap-3" aria-label="Marcador de equipos">
         <div class="score-card flex items-center gap-2 rounded-xl px-2.5 py-2 sm:gap-3 sm:px-3">
-          <div><p class="text-[10px] font-extrabold uppercase tracking-wider text-cyan-200">Equipo 1</p><p id="score-1" class="display-font text-lg font-black leading-5">0</p></div>
+          <div><p class="text-xs font-extrabold uppercase tracking-wider text-cyan-200">Equipo 1</p><p id="score-1" class="display-font text-lg font-black leading-5">0</p></div>
           <div class="flex flex-col gap-1">
-            <button class="score-btn" data-score="1" data-delta="1" aria-label="Sumar punto al Equipo 1"><i class="fa-solid fa-plus text-[10px]"></i></button>
-            <button class="score-btn" data-score="1" data-delta="-1" aria-label="Restar punto al Equipo 1"><i class="fa-solid fa-minus text-[10px]"></i></button>
+            <button class="score-btn" data-score="1" data-delta="1" aria-label="Sumar punto al Equipo 1"><i class="fa-solid fa-plus text-xs"></i></button>
+            <button class="score-btn" data-score="1" data-delta="-1" aria-label="Restar punto al Equipo 1"><i class="fa-solid fa-minus text-xs"></i></button>
           </div>
         </div>
-        <span class="display-font text-xs font-black text-slate-600">VS</span>
+        <span class="display-font text-xs font-black text-slate-400">VS</span>
         <div class="score-card flex items-center gap-2 rounded-xl px-2.5 py-2 sm:gap-3 sm:px-3">
-          <div><p class="text-[10px] font-extrabold uppercase tracking-wider text-rose-200">Equipo 2</p><p id="score-2" class="display-font text-lg font-black leading-5">0</p></div>
+          <div><p class="text-xs font-extrabold uppercase tracking-wider text-rose-200">Equipo 2</p><p id="score-2" class="display-font text-lg font-black leading-5">0</p></div>
           <div class="flex flex-col gap-1">
-            <button class="score-btn" data-score="2" data-delta="1" aria-label="Sumar punto al Equipo 2"><i class="fa-solid fa-plus text-[10px]"></i></button>
-            <button class="score-btn" data-score="2" data-delta="-1" aria-label="Restar punto al Equipo 2"><i class="fa-solid fa-minus text-[10px]"></i></button>
+            <button class="score-btn" data-score="2" data-delta="1" aria-label="Sumar punto al Equipo 2"><i class="fa-solid fa-plus text-xs"></i></button>
+            <button class="score-btn" data-score="2" data-delta="-1" aria-label="Restar punto al Equipo 2"><i class="fa-solid fa-minus text-xs"></i></button>
           </div>
         </div>
       </div>
@@ -147,6 +146,9 @@
       <nav class="order-2 ml-auto flex items-center gap-2 sm:order-3" aria-label="Herramientas">
         <button id="variant-open" class="icon-btn flex h-10 items-center gap-2 rounded-xl px-3 text-xs font-bold" title="Crear definiciones">
           <i class="fa-solid fa-wand-magic-sparkles text-violet-300"></i><span class="hidden md:inline">Crear definiciones</span><span class="md:hidden">Crear</span>
+        </button>
+        <button id="reset-open" class="icon-btn grid h-10 w-10 place-items-center rounded-xl" aria-label="Empezar una nueva partida" title="Nueva partida">
+          <i class="fa-solid fa-rotate-left"></i>
         </button>
         <button id="rules-open" class="icon-btn grid h-10 w-10 place-items-center rounded-xl" aria-label="Abrir reglas" title="Reglas / Cómo se juega">
           <i class="fa-regular fa-circle-question"></i>
@@ -166,22 +168,36 @@
             <p class="eyebrow">La rueda de letras</p>
             <h2 id="rosco-heading" class="display-font mt-1 text-lg font-extrabold">El Rosco</h2>
           </div>
-          <div class="rounded-full border border-blue-300/15 bg-blue-400/5 px-3 py-1.5 text-[10px] font-extrabold tracking-wider text-blue-200">
+          <div class="rounded-full border border-blue-300/15 bg-blue-400/5 px-3 py-1.5 text-xs font-extrabold tracking-wider whitespace-nowrap text-blue-200">
             <i class="fa-solid fa-bolt mr-1"></i> ELECTRICIDAD
           </div>
         </div>
         <div id="rosco" class="rosco-wrap mt-3" aria-label="Letras del rosco"></div>
-        <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-white/[.07] pt-4 text-[10px] font-semibold text-slate-400">
+        <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-white/[.07] pt-4 text-xs font-semibold text-slate-400">
           <span class="flex items-center gap-1.5"><i class="legend-dot bg-blue-500"></i>Pendiente</span>
           <span class="flex items-center gap-1.5"><i class="legend-dot bg-amber-400"></i>Activa</span>
-          <span class="flex items-center gap-1.5"><i class="legend-dot bg-cyan-400"></i>Pasapalabra</span>
+          <span class="flex items-center gap-1.5"><i class="legend-dot bg-cyan-400"></i>Pasada</span>
           <span class="flex items-center gap-1.5"><i class="legend-dot bg-emerald-400"></i>Adivinada</span>
           <span class="flex items-center gap-1.5"><i class="legend-dot bg-rose-400"></i>Revelada</span>
         </div>
-        <p class="mt-3 text-center text-[11px] text-slate-500">Selecciona cualquier letra para abrir su desafío.</p>
+        <p class="mt-3 text-center text-xs text-slate-400">Selecciona cualquier letra para abrir su desafío.</p>
       </section>
 
       <div class="space-y-5">
+        <section id="result-box" class="answer-box hidden rounded-3xl border border-amber-300/30 bg-amber-300/[.07] p-4 sm:p-5" aria-live="polite">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-trophy text-3xl text-amber-300" aria-hidden="true"></i>
+              <div>
+                <p class="eyebrow">Rosco completo</p>
+                <h2 id="result-title" class="display-font mt-1 text-2xl font-black text-white"></h2>
+                <p id="result-detail" class="mt-1 text-sm font-semibold text-slate-300"></p>
+              </div>
+            </div>
+            <button id="result-reset" type="button" class="primary-btn min-h-11 rounded-xl px-5 text-sm font-extrabold"><i class="fa-solid fa-rotate-left mr-2"></i>Nueva partida</button>
+          </div>
+        </section>
+
         <section class="glass rounded-3xl p-4 sm:p-5" aria-labelledby="dynamic-heading">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -191,7 +207,7 @@
             <div class="flex min-w-[136px] items-center justify-center gap-2 rounded-2xl border border-amber-300/15 bg-amber-300/[.06] px-4 py-2">
               <i class="fa-regular fa-clock text-amber-300"></i>
               <span id="timer" class="display-font text-2xl font-black tabular-nums">30</span>
-              <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-100/60">seg</span>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-100/60">seg</span>
             </div>
           </div>
           <div class="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
@@ -208,13 +224,13 @@
               <p class="eyebrow">Letra · respuesta oculta</p>
               <h2 id="claim-word" class="display-font truncate text-base font-extrabold text-white sm:text-lg">Palabra por descubrir</h2>
             </div>
-            <span id="custom-tag" class="hidden rounded-full border border-violet-300/25 bg-violet-400/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-violet-200">
+            <span id="custom-tag" class="hidden rounded-full border border-violet-300/25 bg-violet-400/10 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-violet-200">
               <i class="fa-solid fa-users mr-1"></i>Creada por estudiantes
             </span>
           </div>
           <div class="mt-5 border-l-2 border-cyan-300/50 pl-4">
             <p class="eyebrow">Definición</p>
-            <p id="claim-text" class="mt-2 text-lg font-semibold leading-relaxed text-slate-100 sm:text-xl"></p>
+            <p id="claim-text" class="mt-2 text-lg font-semibold leading-relaxed text-slate-100 sm:text-xl lg:text-2xl"></p>
           </div>
           <form id="answer-form" class="mt-5 flex flex-col gap-2 sm:flex-row">
             <label class="sr-only" for="student-answer">Palabra que responde el alumno</label>
@@ -223,9 +239,9 @@
             <button id="reveal-btn" type="button" class="secondary-btn min-h-11 rounded-xl px-4 text-xs font-extrabold"><i class="fa-solid fa-eye mr-2"></i>Mostrar respuesta</button>
           </form>
           <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <p class="flex items-center gap-2 text-[10px] font-semibold text-slate-500"><i class="fa-solid fa-microphone-lines text-cyan-300"></i>La profe lee la definición; el alumno responde en voz alta.</p>
-            <label class="flex items-center gap-2 text-[10px] font-bold text-slate-400">Turno
-              <select id="active-team" class="form-field rounded-lg px-2 py-1.5 text-[10px]">
+            <p class="flex items-center gap-2 text-xs font-semibold text-slate-400"><i class="fa-solid fa-microphone-lines text-cyan-300"></i>La profe lee la definición; el alumno responde en voz alta.</p>
+            <label class="flex items-center gap-2 text-xs font-bold text-slate-400">Turno
+              <select id="active-team" class="form-field rounded-lg px-2 py-1.5 text-xs">
                 <option value="1">Equipo 1</option><option value="2">Equipo 2</option>
               </select>
             </label>
@@ -237,15 +253,15 @@
         <section class="glass rounded-3xl p-4 sm:p-5">
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <button id="timer-toggle" class="secondary-btn flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold"><i id="timer-icon" class="fa-solid fa-play text-amber-300"></i><span id="timer-label">Iniciar: 30s</span></button>
-            <button id="pass-btn" class="secondary-btn flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold text-cyan-100"><i class="fa-solid fa-forward-step text-cyan-300"></i>¡Pasapalabra!</button>
+            <button id="pass-btn" class="secondary-btn flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold text-cyan-100"><i class="fa-solid fa-forward-step text-cyan-300"></i>¡Paso!</button>
             <button id="next-btn" class="secondary-btn flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-xs font-extrabold"><i class="fa-solid fa-arrow-right text-blue-300"></i>Siguiente letra</button>
-            <span class="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/[.07] bg-white/[.025] px-3 text-center text-[10px] font-bold text-slate-500"><i class="fa-solid fa-stopwatch text-amber-300"></i>30 segundos por definición</span>
+            <span class="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/[.07] bg-white/[.025] px-3 text-center text-xs font-bold text-slate-400"><i class="fa-solid fa-stopwatch text-amber-300"></i>30 segundos por definición</span>
           </div>
-          <p class="mt-3 text-center text-[10px] text-slate-500">Escribe la palabra que dice el alumno para comprobarla; también puedes jugar solo de forma oral.</p>
+          <p class="mt-3 text-center text-xs text-slate-400">Escribe la palabra que dice el alumno para comprobarla; también puedes jugar solo de forma oral.</p>
         </section>
       </div>
     </div>
-    <footer class="py-6 text-center text-[10px] font-medium text-slate-600">Aprender electricidad también es pensar, recordar y decir la palabra. <i class="fa-solid fa-bolt text-cyan-400/60"></i></footer>
+    <footer class="py-6 text-center text-xs font-medium text-slate-400">Aprender electricidad también es pensar, recordar y decir la palabra. <i class="fa-solid fa-bolt text-cyan-400/60"></i></footer>
   </main>
 
   <div id="toast-region" class="pointer-events-none fixed bottom-4 right-4 z-[70] flex max-w-[calc(100%-2rem)] flex-col items-end gap-2" aria-live="polite" aria-atomic="true"></div>
@@ -260,10 +276,22 @@
         <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-blue-400/15 text-xs font-black text-blue-200">1</span><span><b class="text-white">Escucha:</b> la profe elige una letra y lee en voz alta la definición. La palabra clave permanece oculta.</span></li>
         <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-blue-400/15 text-xs font-black text-blue-200">2</span><span><b class="text-white">Responde:</b> el alumno dice la palabra antes de que termine el cronómetro de 30 segundos. La profe puede escribir la respuesta para comprobarla.</span></li>
         <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-blue-400/15 text-xs font-black text-blue-200">3</span><span><b class="text-white">Puntúa:</b> si acierta, suma un punto al equipo del turno. Si no recuerda la palabra, puede pasar y volver a esa letra después.</span></li>
-        <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-cyan-400/15 text-xs font-black text-cyan-200"><i class="fa-solid fa-forward-step"></i></span><span><b class="text-white">¡Pasapalabra!</b> pulsa el botón para dejar la letra pendiente y avanzar a la siguiente. Las letras ya resueltas se pueden repasar.</span></li>
+        <li class="flex gap-3"><span class="grid h-7 w-7 flex-none place-items-center rounded-full bg-cyan-400/15 text-xs font-black text-cyan-200"><i class="fa-solid fa-forward-step"></i></span><span><b class="text-white">¡Paso!</b> pulsa el botón para dejar la letra pendiente y avanzar a la siguiente. Las letras ya resueltas se pueden repasar.</span></li>
       </ol>
       <div class="mt-5 rounded-2xl border border-amber-300/15 bg-amber-300/[.05] p-3 text-xs leading-relaxed text-amber-100/80"><i class="fa-solid fa-triangle-exclamation mr-1 text-amber-300"></i> Para experimentar circuitos, utiliza solo pilas de baja tensión; nunca conectes materiales del aula a la red eléctrica.</div>
       <button class="modal-close primary-btn mt-5 w-full rounded-xl px-4 py-3 text-sm font-extrabold">¡Entendido!</button>
+    </div>
+  </div>
+
+  <div id="reset-modal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+    <div class="glass my-auto w-full max-w-md rounded-3xl p-5 sm:p-7">
+      <p class="eyebrow">Nueva partida</p>
+      <h2 id="reset-title" class="display-font mt-1 text-xl font-extrabold">¿Empezar de cero?</h2>
+      <p class="mt-3 text-sm leading-relaxed text-slate-300">Se borran el puntaje, el avance del rosco y las definiciones creadas por los equipos.</p>
+      <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <button type="button" class="modal-close secondary-btn rounded-xl px-5 py-2.5 text-sm font-bold">Cancelar</button>
+        <button id="reset-confirm" type="button" class="primary-btn rounded-xl px-5 py-2.5 text-sm font-extrabold">Sí, empezar de cero</button>
+      </div>
     </div>
   </div>
 
@@ -282,31 +310,31 @@
         <div class="grid gap-4 md:grid-cols-2">
           <fieldset class="rounded-2xl border border-emerald-300/20 bg-emerald-400/[.035] p-4">
             <legend class="px-2 text-xs font-black uppercase tracking-wider text-emerald-200"><i class="fa-solid fa-lightbulb mr-1"></i>Definición 1</legend>
-            <label class="mb-3 block text-[11px] font-bold text-slate-300">Letra
+            <label class="mb-3 block text-xs font-bold text-slate-300">Letra
               <input name="first-letter" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm uppercase" maxlength="3" required placeholder="Ej. B">
             </label>
-            <label class="mb-3 block text-[11px] font-bold text-slate-300">Palabra respuesta
+            <label class="mb-3 block text-xs font-bold text-slate-300">Palabra respuesta
               <input name="first-word" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm" maxlength="40" required placeholder="Ej. Batería">
             </label>
-            <label class="mb-3 block text-[11px] font-bold text-slate-300">Definición
+            <label class="mb-3 block text-xs font-bold text-slate-300">Definición
               <textarea name="first-text" class="form-field mt-1 block min-h-20 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="220" required placeholder="Describe la palabra sin nombrarla"></textarea>
             </label>
-            <label class="block text-[11px] font-bold text-slate-300">Pista / explicación (opcional)
+            <label class="block text-xs font-bold text-slate-300">Pista / explicación (opcional)
               <textarea name="first-reason" class="form-field mt-1 block min-h-16 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="300" placeholder="Una pista adicional si hace falta"></textarea>
             </label>
           </fieldset>
           <fieldset class="rounded-2xl border border-rose-300/20 bg-rose-400/[.035] p-4">
             <legend class="px-2 text-xs font-black uppercase tracking-wider text-rose-200"><i class="fa-solid fa-lightbulb mr-1"></i>Definición 2</legend>
-            <label class="mb-3 block text-[11px] font-bold text-slate-300">Letra
+            <label class="mb-3 block text-xs font-bold text-slate-300">Letra
               <input name="second-letter" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm uppercase" maxlength="3" required placeholder="Ej. B">
             </label>
-            <label class="mb-3 block text-[11px] font-bold text-slate-300">Palabra respuesta
+            <label class="mb-3 block text-xs font-bold text-slate-300">Palabra respuesta
               <input name="second-word" class="form-field mt-1 block w-full rounded-lg px-3 py-2 text-sm" maxlength="40" required placeholder="Ej. Bombilla">
             </label>
-            <label class="mb-3 block text-[11px] font-bold text-slate-300">Definición
+            <label class="mb-3 block text-xs font-bold text-slate-300">Definición
               <textarea name="second-text" class="form-field mt-1 block min-h-20 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="220" required placeholder="Describe la palabra sin nombrarla"></textarea>
             </label>
-            <label class="block text-[11px] font-bold text-slate-300">Pista / explicación (opcional)
+            <label class="block text-xs font-bold text-slate-300">Pista / explicación (opcional)
               <textarea name="second-reason" class="form-field mt-1 block min-h-16 w-full resize-y rounded-lg px-3 py-2 text-sm" maxlength="300" placeholder="Una pista adicional si hace falta"></textarea>
             </label>
           </fieldset>
@@ -336,6 +364,10 @@
       { letter: "T", word: "Tensión", accepted: ["tension", "voltaje"], text: "Diferencia de potencial eléctrico entre dos puntos, medida en voltios; se eleva para transportar energía con menos pérdidas.", reason: "Al elevar la tensión para transportar la misma potencia, disminuye la corriente y se reducen las pérdidas por calor." }
     ].map((claim, id) => ({ ...claim, id, status: "pending", custom: false }));
 
+    const OFFICIAL_COUNT = claims.length;
+    const STORAGE_KEY = "rosco-electrico:partida:v1";
+    const VALID_STATUSES = ["pending", "passed", "solved", "revealed"];
+
     const state = {
       currentId: claims[0].id,
       scores: { 1: 0, 2: 0 },
@@ -351,6 +383,89 @@
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const currentClaim = () => claims.find((claim) => claim.id === state.currentId);
     const isResolved = (claim) => claim.status === "solved" || claim.status === "revealed";
+    const isComplete = () => claims.every(isResolved);
+    let focusBeforeModal = null;
+
+    // La partida sobrevive a un F5 o a un cierre accidental de la pestaña.
+    function saveGame() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          currentId: state.currentId,
+          scores: state.scores,
+          activeTeam: $("#active-team").value,
+          official: claims.slice(0, OFFICIAL_COUNT).map(({ status, solvedTeam }) => ({ status, solvedTeam })),
+          custom: claims.slice(OFFICIAL_COUNT)
+        }));
+      } catch (error) {
+        console.warn("No se pudo guardar la partida.", error);
+      }
+    }
+
+    function loadGame() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        const validCustom = (item, index) => item?.id === OFFICIAL_COUNT + index && VALID_STATUSES.includes(item.status)
+          && [item.letter, item.word, item.text, item.reason].every((value) => typeof value === "string");
+        if (!Array.isArray(saved?.official) || saved.official.length !== OFFICIAL_COUNT) return false;
+        if (!saved.official.every((item) => VALID_STATUSES.includes(item?.status))) return false;
+        if (!Array.isArray(saved.custom) || !saved.custom.every(validCustom)) return false;
+        saved.official.forEach((item, index) => Object.assign(claims[index], item));
+        claims.push(...saved.custom);
+        [1, 2].forEach((team) => {
+          if (Number.isInteger(saved.scores?.[team]) && saved.scores[team] >= 0) state.scores[team] = saved.scores[team];
+        });
+        state.currentId = saved.currentId === null || claims.some((claim) => claim.id === saved.currentId) ? saved.currentId : claims[0].id;
+        if (["1", "2"].includes(saved.activeTeam)) $("#active-team").value = saved.activeTeam;
+        return claims.some((claim) => claim.status !== "pending") || state.scores[1] + state.scores[2] > 0;
+      } catch (error) {
+        console.warn("No se pudo recuperar la partida guardada.", error);
+        return false;
+      }
+    }
+
+    function renderScores() {
+      [1, 2].forEach((team) => { $(`#score-${team}`).textContent = String(state.scores[team]); });
+    }
+
+    function renderResult() {
+      const box = $("#result-box");
+      box.classList.toggle("hidden", !isComplete());
+      if (!isComplete()) return;
+      const { 1: first, 2: second } = state.scores;
+      const solved = claims.filter((claim) => claim.status === "solved").length;
+      $("#result-title").textContent = first === second ? "¡Empate!" : `¡Ganó el Equipo ${first > second ? 1 : 2}!`;
+      $("#result-detail").textContent = `Equipo 1: ${first} · Equipo 2: ${second} · ${solved} adivinadas · ${claims.length - solved} reveladas`;
+    }
+
+    function renderAll() {
+      renderRosco();
+      renderClaim();
+      renderResult();
+      saveGame();
+    }
+
+    function announceIfComplete() {
+      if (!isComplete()) return;
+      $("#result-box").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+      toast("¡Rosco completo!", "success");
+      playTone(880, 0.22);
+    }
+
+    function newGame() {
+      stopTimer(true);
+      claims.length = OFFICIAL_COUNT;
+      claims.forEach((claim) => {
+        claim.status = "pending";
+        delete claim.solvedTeam;
+      });
+      state.scores = { 1: 0, 2: 0 };
+      state.currentId = claims[0].id;
+      $("#active-team").value = "1";
+      renderScores();
+      renderAll();
+      closeModal($("#reset-modal"));
+      toast("Nueva partida lista.", "success");
+    }
 
     function playTone(frequency = 600, duration = 0.1, type = "sine") {
       if (!state.soundOn) return;
@@ -429,10 +544,12 @@
         node.style.top = `${50 + radius * Math.sin(angle)}%`;
         node.textContent = claim.letter;
         const answerText = isResolved(claim) ? ` · ${claim.word}` : "";
-        node.title = `Letra ${claim.letter}${answerText}${claim.status === "passed" ? " · Pasapalabra" : ""}`;
-        node.setAttribute("aria-label", `Letra ${claim.letter}${answerText}${claim.status === "passed" ? ", pasapalabra" : ""}${claim.id === state.currentId ? ", activa" : ""}`);
+        node.title = `Letra ${claim.letter}${answerText}${claim.status === "passed" ? " · Pasada" : ""}`;
+        node.setAttribute("aria-label", `Letra ${claim.letter}${answerText}${claim.status === "passed" ? ", pasada" : ""}${claim.id === state.currentId ? ", activa" : ""}`);
         node.setAttribute("aria-current", claim.id === state.currentId ? "true" : "false");
-        node.addEventListener("click", () => selectClaim(claim.id));
+        node.addEventListener("click", () => {
+          if (claim.id !== state.currentId) selectClaim(claim.id);
+        });
         rosco.append(node);
       });
     }
@@ -477,8 +594,7 @@
       state.currentId = id;
       state.timerSeconds = 30;
       updateTimerDisplay();
-      renderRosco();
-      renderClaim();
+      renderAll();
       playTone(520, 0.08);
     }
 
@@ -495,10 +611,7 @@
       const next = findNextUnresolved();
       if (!next) {
         state.currentId = null;
-        renderRosco();
-        renderClaim();
-        toast("¡Rosco completo! Han resuelto todas las afirmaciones.", "success");
-        playTone(880, 0.22);
+        renderAll();
         return;
       }
       selectClaim(next.id);
@@ -524,11 +637,11 @@
       answer.textContent = claim.word;
       heading.append(label, answer);
       const badge = document.createElement("span");
-      badge.className = `rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${correct ? "bg-emerald-300/10 text-emerald-200" : "bg-rose-300/10 text-rose-200"}`;
+      badge.className = `rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider ${correct ? "bg-emerald-300/10 text-emerald-200" : "bg-rose-300/10 text-rose-200"}`;
       badge.textContent = correct ? `+1 ${claim.solvedTeam ?? $("#active-team").selectedOptions[0].textContent}` : "Definición revelada";
       row.append(heading, badge);
       const explanationLabel = document.createElement("p");
-      explanationLabel.className = "mt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400";
+      explanationLabel.className = "mt-3 text-xs font-extrabold uppercase tracking-wider text-slate-400";
       explanationLabel.textContent = "Pista / explicación";
       const explanation = document.createElement("p");
       explanation.className = "mt-1 text-sm leading-relaxed text-slate-200";
@@ -551,10 +664,10 @@
       }
       stopTimer(true);
       claim.status = "revealed";
-      renderRosco();
-      renderClaim();
+      renderAll();
       toast(`La respuesta era: ${claim.word}.`, "info");
       playTone(360, 0.16, "triangle");
+      announceIfComplete();
     }
 
     function normalizeAnswer(value) {
@@ -584,22 +697,21 @@
       const team = $("#active-team").value;
       claim.solvedTeam = `Equipo ${team}`;
       state.scores[team] += 1;
-      $(`#score-${team}`).textContent = String(state.scores[team]);
-      renderRosco();
-      renderClaim();
-      renderOfficialAnswer(claim);
+      renderScores();
+      renderAll();
       toast(`¡Correcto! ${claim.word}. Punto para el Equipo ${team}.`, "success");
       playTone(780, 0.18);
+      announceIfComplete();
     }
 
-    function passClaim() {
+    function passClaim(message) {
       const claim = currentClaim();
       if (!claim || isResolved(claim)) {
         toast("No hay una letra pendiente para pasar.", "warning");
         return;
       }
       claim.status = "passed";
-      toast(`Letra ${claim.letter} pendiente para la próxima vuelta.`, "info");
+      toast(typeof message === "string" ? message : `Letra ${claim.letter} pendiente para la próxima vuelta.`, "info");
       playTone(420, 0.12);
       goNext();
     }
@@ -613,8 +725,9 @@
       if (state.timerInterval) window.clearInterval(state.timerInterval);
       state.timerInterval = null;
       $("#timer-icon").className = "fa-solid fa-play text-amber-300";
-      $("#timer-label").textContent = "Iniciar: 30s";
       if (reset) state.timerSeconds = 30;
+      const paused = state.timerSeconds > 0 && state.timerSeconds < 30;
+      $("#timer-label").textContent = paused ? `Reanudar: ${state.timerSeconds}s` : "Iniciar: 30s";
       updateTimerDisplay();
     }
 
@@ -633,9 +746,8 @@
           stopTimer();
           state.timerSeconds = 0;
           updateTimerDisplay();
-          toast("¡Se acabó el tiempo! Pasamos a la siguiente letra.", "warning");
           playTone(240, 0.35, "triangle");
-          passClaim();
+          passClaim("¡Se acabó el tiempo! Pasamos a la siguiente letra.");
         } else if (state.timerSeconds <= 5) {
           playTone(660, 0.04);
         }
@@ -649,6 +761,8 @@
 
     function openModal(id) {
       const modal = $(`#${id}`);
+      if (state.timerInterval) stopTimer();
+      focusBeforeModal = document.activeElement;
       modal.classList.remove("hidden");
       modal.classList.add("flex");
       document.body.style.overflow = "hidden";
@@ -659,6 +773,23 @@
       modal.classList.add("hidden");
       modal.classList.remove("flex");
       document.body.style.overflow = "";
+      focusBeforeModal?.focus();
+      focusBeforeModal = null;
+    }
+
+    function trapFocus(event) {
+      const modal = document.querySelector('[role="dialog"]:not(.hidden)');
+      if (!modal) return;
+      const focusable = [...modal.querySelectorAll("button, input, select, textarea")].filter((item) => !item.disabled);
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
     function shuffle(items) {
@@ -669,11 +800,33 @@
       return items;
     }
 
+    function rejectField(field, message) {
+      field.setCustomValidity(message);
+      field.reportValidity();
+      field.addEventListener("input", () => field.setCustomValidity(""), { once: true });
+      return false;
+    }
+
+    function validateCustomDefinition(form, prefix) {
+      const letter = form.elements[`${prefix}-letter`];
+      const word = form.elements[`${prefix}-word`];
+      const text = form.elements[`${prefix}-text`];
+      const normalLetter = normalizeAnswer(letter.value);
+      const normalWord = normalizeAnswer(word.value);
+      if (!normalLetter) return rejectField(letter, "Escribe la letra.");
+      if (!normalWord) return rejectField(word, "Escribe la palabra respuesta.");
+      if (!normalizeAnswer(text.value)) return rejectField(text, "Escribe la definición.");
+      if (!normalWord.includes(normalLetter)) return rejectField(letter, `La palabra "${word.value.trim()}" no contiene la letra ${letter.value.trim().toLocaleUpperCase("es")}.`);
+      if (normalizeAnswer(text.value).split(" ").includes(normalWord)) return rejectField(text, "La definición no puede nombrar la palabra respuesta.");
+      return true;
+    }
+
     // Cada envío agrega dos definiciones nuevas y las presenta en orden aleatorio.
     function addCustomPair(event) {
       event.preventDefault();
       const form = event.currentTarget;
       if (!form.reportValidity()) return;
+      if (!validateCustomDefinition(form, "first") || !validateCustomDefinition(form, "second")) return;
       const data = new FormData(form);
       const creator = $("#creator-team").value;
       const pair = [
@@ -703,8 +856,7 @@
       $("#active-team").value = creator === "Equipo 1" ? "2" : "1";
       stopTimer(true);
       state.currentId = newClaims[0].id;
-      renderRosco();
-      renderClaim();
+      renderAll();
       closeModal($("#variant-modal"));
       form.reset();
       toast(`Dos definiciones de ${creator} añadidas. ¡El orden es sorpresa!`, "success");
@@ -716,10 +868,16 @@
         const team = button.dataset.score;
         const delta = Number(button.dataset.delta);
         state.scores[team] = Math.max(0, state.scores[team] + delta);
-        $(`#score-${team}`).textContent = String(state.scores[team]);
+        renderScores();
+        renderResult();
+        saveGame();
         playTone(delta > 0 ? 720 : 360, 0.07);
       });
     });
+    $("#active-team").addEventListener("change", saveGame);
+    $("#reset-open").addEventListener("click", () => openModal("reset-modal"));
+    $("#result-reset").addEventListener("click", () => openModal("reset-modal"));
+    $("#reset-confirm").addEventListener("click", newGame);
     $("#timer-toggle").addEventListener("click", toggleTimer);
     $("#pass-btn").addEventListener("click", passClaim);
     $("#reveal-btn").addEventListener("click", revealAnswer);
@@ -746,14 +904,17 @@
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
-        document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(closeModal);
+        document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach((modal) => closeModal(modal));
       }
+      if (event.key === "Tab") trapFocus(event);
     });
 
     if (reducedMotion) document.documentElement.classList.add("reduce-motion");
+    const restored = loadGame();
     updateTimerDisplay();
-    renderRosco();
-    renderClaim();
+    renderScores();
+    renderAll();
+    if (restored) toast("Partida anterior recuperada.", "info");
   </script>
 </body>
 </html>

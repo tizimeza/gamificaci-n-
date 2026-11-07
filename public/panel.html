@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071226">
+  <title>Mis roscos | RoscoLab</title>
+  <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/personajes.css">
+  <link rel="stylesheet" href="/assets/biblioteca.css">
+  <script type="module" src="/assets/js/panel.js"></script>
+  <link rel="stylesheet" href="/assets/generador.css">
+</head>
+<body class="sitio">
+  <header class="topbar">
+    <div class="mx-auto flex flex-wrap max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div class="flex items-center gap-4"><a href="/" class="display-font text-lg font-black">RoscoLab</a><a id="volver-clases" href="clases.html" class="text-sm font-bold text-cyan-200 underline">Mis clases</a></div>
+      <div id="sesion" class="hidden min-w-0 items-center gap-3">
+        <span id="sesion-alias" class="truncate text-sm font-bold text-slate-300"></span>
+        <button id="salir" class="secondary-btn px-3 text-sm">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+    <!-- Lista -->
+    <section id="vista-lista" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div><p class="eyebrow">Tu biblioteca de desafíos</p><h1 class="display-font mt-1 text-2xl font-black">Mis roscos</h1><p class="library-intro">Volvé a jugarlos, usalos en otras clases o creá una versión nueva a partir de sus preguntas.</p></div>
+        <a id="crear-con-ia" href="/generador" class="secondary-btn hidden px-5 text-sm">Crear con Gemini</a><button id="nuevo" class="primary-btn px-5 text-sm"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Nuevo rosco</button>
+      </div>
+      <div id="biblioteca-filtros" class="library-filters">
+        <label>Buscar en mi biblioteca<input id="biblioteca-buscar" type="search" class="form-field" placeholder="Título o materia…" maxlength="100"></label>
+        <label>Materia<select id="biblioteca-materia" class="form-field"><option value="">Todas las materias</option></select></label>
+        <label>Ordenar por<select id="biblioteca-orden" class="form-field"><option value="recientes">Últimos cambios</option><option value="titulo">Título de A a Z</option><option value="letras">Cantidad de letras</option></select></label>
+      </div>
+      <p id="biblioteca-contador" class="library-counter" role="status" aria-live="polite"></p>
+      <div id="biblioteca-sin-resultados" class="library-no-results hidden"><h2>No encontramos ese rosco.</h2><p>Probá con otro título o cambiá el filtro de materia.</p><button id="biblioteca-limpiar" type="button" class="secondary-btn px-4 text-sm">Limpiar búsqueda</button></div>
+      <div id="lista" class="mt-5 grid gap-4 md:grid-cols-2"></div>
+      <div id="lista-vacia" class="glass mt-5 hidden rounded-3xl p-8 text-center">
+        <p class="display-font text-lg font-extrabold">Todavía no creaste ningún rosco</p>
+        <p class="mt-2 text-sm text-slate-300">Empezá de cero o con una plantilla de ejemplo.</p>
+      </div>
+    </section>
+
+    <!-- Editor -->
+    <section id="vista-editor" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h1 id="editor-titulo" class="display-font text-2xl font-black">Nuevo rosco</h1>
+        <button id="editor-volver" class="secondary-btn px-4 text-sm">Volver</button>
+      </div>
+      <p id="editor-origen" class="library-copy-note hidden" role="status"></p>
+      <section id="editor-generacion" class="generator-references hidden" aria-label="Revisión del borrador de Gemini">
+        <p>Gemini preparó este borrador. Las citas se comprobaron contra tus fragmentos; revisá que cada pregunta y respuesta sea correcta y adecuada para tu curso.</p>
+        <details><summary>Ver objetivo, fuentes y evidencias originales</summary><div id="editor-evidencias"></div></details>
+        <label><input id="revision-confirmada" type="checkbox"> Revisé las preguntas, respuestas, pistas y referencias de este rosco antes de compartirlo.</label>
+      </section>
+      <form id="editor" class="mt-5 space-y-5" novalidate>
+        <label class="glass block rounded-2xl p-4 text-sm"><input id="campo-powerups" type="checkbox" checked> Habilitar power-ups: +15 segundos, una pista y un reintento por partida. En vivo, el tiempo extra es común y se usa una sola vez por sala.</label>
+        <div class="glass grid gap-4 rounded-3xl p-5 md:grid-cols-[2fr_1fr_1fr]">
+          <label class="block text-sm font-bold text-slate-300">Título
+            <input id="campo-titulo" class="form-field mt-1 block min-h-11 w-full px-3" maxlength="80" placeholder="Ej. Revolución de Mayo">
+          </label>
+          <label class="block text-sm font-bold text-slate-300">Materia
+            <select id="campo-materia" class="form-field mt-1 block min-h-11 w-full px-3"></select>
+          </label>
+          <label class="block text-sm font-bold text-slate-300">Tiempo total (segundos)
+            <input id="campo-segundos" type="number" class="form-field mt-1 block min-h-11 w-full px-3" min="60" max="900" step="10">
+          </label>
+          <label id="plantilla-campo" class="block text-sm font-bold text-slate-300 md:col-span-3">Empezar con una plantilla
+            <select id="campo-plantilla" class="form-field mt-1 block min-h-11 w-full px-3"></select>
+          </label>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="display-font text-lg font-extrabold">Letras <span id="contador" class="text-sm font-bold text-slate-400"></span></h2>
+            <button id="agregar" type="button" class="secondary-btn px-4 text-sm"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Agregar letra</button>
+          </div>
+          <p class="mt-1 text-sm text-slate-400">La palabra puede empezar con la letra o contenerla. Otras respuestas válidas van separadas por comas.</p>
+          <div id="filas" class="mt-3 space-y-3"></div>
+        </div>
+
+        <ul id="editor-errores" class="hidden list-inside list-disc rounded-2xl border border-rose-300/30 bg-rose-400/10 p-4 text-sm font-semibold text-rose-200" role="alert"></ul>
+        <div class="flex justify-end"><button id="guardar" class="primary-btn px-6 text-sm">Guardar rosco</button></div>
+      </form>
+    </section>
+  </main>
+
+  <dialog id="dialogo-asignar" class="dialogo" aria-labelledby="asignar-titulo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 id="asignar-titulo" class="display-font text-xl font-black">Usar en una clase</h2>
+      <p id="asignar-descripcion" class="mt-2 text-sm text-slate-300"></p>
+      <form id="asignar-form" class="mt-5 space-y-4">
+        <label class="block text-sm font-bold">Elegí una clase<select id="asignar-clase" class="form-field mt-2 block min-h-11 w-full px-3" required></select></label>
+        <p id="asignar-error" class="text-sm text-rose-200" role="alert"></p>
+        <p id="asignar-sin-clases" class="hidden text-sm text-slate-300">Todavía no tenés clases. <a href="clases.html" class="text-cyan-200 underline">Creá tu primera clase</a> y volvé a asignar este rosco.</p>
+        <div class="flex justify-end gap-2"><button id="asignar-cerrar" type="button" class="secondary-btn px-4 text-sm">Cerrar</button><button id="asignar-guardar" type="submit" class="primary-btn px-4 text-sm">Asignar rosco</button></div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="dialogo-compartir" class="dialogo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 class="display-font text-xl font-black">Compartí tu rosco</h2>
+      <p class="mt-2 text-sm text-slate-300">Con este código o enlace pueden jugar sin registrarse.</p>
+      <p id="compartir-codigo" class="display-font mt-4 text-center text-4xl font-black tracking-widest text-amber-200"></p>
+      <input id="compartir-enlace" class="form-field mt-4 block min-h-11 w-full px-3 text-sm" readonly aria-label="Enlace para compartir">
+      <div class="mt-4 flex justify-end gap-2">
+        <button id="compartir-cerrar" class="secondary-btn px-4 text-sm">Cerrar</button>
+        <button id="compartir-copiar" class="primary-btn px-4 text-sm"><i class="fa-solid fa-copy mr-2" aria-hidden="true"></i>Copiar enlace</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dialogo-ranking" class="dialogo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 id="ranking-titulo" class="display-font text-xl font-black"></h2>
+      <div id="ranking-lista" class="mt-3 max-h-96 overflow-y-auto"></div>
+      <div class="mt-4 flex justify-between gap-2">
+        <button id="ranking-borrar" class="danger-btn px-4 text-sm">Reiniciar ranking</button>
+        <button id="ranking-cerrar" class="secondary-btn px-4 text-sm">Cerrar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dialogo-confirmar" class="dialogo">
+    <div class="glass rounded-3xl p-5 sm:p-7">
+      <h2 id="confirmar-titulo" class="display-font text-xl font-black"></h2>
+      <p id="confirmar-texto" class="mt-2 text-sm text-slate-300"></p>
+      <div class="mt-5 flex justify-end gap-2">
+        <button id="confirmar-no" class="secondary-btn px-4 text-sm">Cancelar</button>
+        <button id="confirmar-si" class="danger-btn px-4 text-sm">Sí, borrar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="avisos" class="pointer-events-none fixed bottom-4 right-4 z-50 flex max-w-[calc(100%-2rem)] flex-col items-end gap-2" aria-live="polite"></div>
+</body>
+</html>
